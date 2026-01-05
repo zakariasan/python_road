@@ -2,24 +2,24 @@
 
 """
 Displays information about a plant in your garden(efficiently).
+Class day
 """
 
 
 class Plant:
     """
-    Serves as a blueprint for any plant, rather than handling
-    each one individually.
+    Serves as a blueprint for any plant,
+    rather than handling each one individually.
     """
     def __init__(self, name: str, height: float, age: int) -> None:
         """
-         Every plant might have a name, height, and age
+        Every plant might have a name, height, and age
         """
         self.name = name
         self.height = height
         self.age = age
 
-
-    def __str__(self) -> str:
+    def print_plant(self) -> str:
         """
         Print the plant with their infos
         """
@@ -28,6 +28,7 @@ class Plant:
         else:
             day = "days"
         return (f"{self.name} {self.height}cm, {self.age} {day} old")
+
 
 def main():
     """
@@ -38,9 +39,10 @@ def main():
     sun = Plant("Sunflower", 80, 45)
     cac = Plant("Cactus", 15, 120)
     print("=== Garden Plant Registry ===")
-    print(rose)
-    print(sun)
-    print(cac)
+    print(rose.print_plant())
+    print(sun.print_plant())
+    print(cac.print_plant())
+
 
 # This line means: "If someone runs this file directly, call main()"
 if __name__ == "__main__":

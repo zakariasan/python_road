@@ -4,6 +4,7 @@
 Displays information about a plant in your garden.
 """
 
+
 def main():
     """
     A program that runs when executed directly
@@ -18,6 +19,7 @@ def main():
     print(f"Height: {height}cm")
     print(f"Age: {age} days")
     print("\n=== End of Program ===")
+
 
 # This line means: "If someone runs this file directly, call main()"
 if __name__ == "__main__":
