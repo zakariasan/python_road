@@ -11,13 +11,12 @@ class Plant:
     """
     Serves as a blueprint for any plant,
     """
-    def __init__(self, name: str, height: float, age: int) -> None:
+    def __init__(self, name: str, height: float) -> None:
         """
         Every plant might have a name, height, and age
         """
         self.name = name
         self.height = height
-        self.age = age
 
     def grow(self) -> None:
         """
@@ -61,7 +60,7 @@ class FloweringPlant(Plant):
         Print the plant with their infos
         """
         get_info = super().print_plant()
-        return f"{get_info}, {self.status} flowers ({self.bloom()})"
+        return f"{get_info}, {self.color} flowers ({self.bloom()})"
 
 
 class PrizeFlower(FloweringPlant):
@@ -116,7 +115,6 @@ class Garden:
     def report(self) -> None:
         print(f"=== {self.name}'s Garden Report ===")
         for plant in self.plants:
-
             print(f"- {plant.print_plant()}")
 
 
@@ -191,6 +189,8 @@ class GardenManager:
 def main():
     print("=== Garden Management System Demo ===    ")
     alice = Garden("Alice")
+    manager = GardenManager()
+    manager.add_garden(alice)
     plants = [
             Plant("Oak Tree", 101),
             FloweringPlant("Rose", 26, "red"),
@@ -198,6 +198,13 @@ def main():
             ]
     for plant in plants:
         alice.add_plant(plant)
+    print()
+    alice.grow_all()
+    print()
+    alice.report()
+    print()
+    print(manager.analyse(alice.name))
+
 
 # This line means: "If someone runs this file directly, call main()"
 
