@@ -2,40 +2,34 @@
 
 """
 Displays information about a plant in your garden(efficiently).
-Class day
-
+$> Class day
 """
 
 
 class Plant:
-    """
-    Serves as a blueprint for any plant,
-    """
+    """The Mother for all plants in the garden."""
     def __init__(self, name: str, height: float) -> None:
-        """
-        Every plant might have a name, height, and age
-        """
+        """Every plant might have a name, height."""
         self.name = name
         self.height = height
+        self.growth = height
 
     def grow(self) -> None:
-        """
-        Plant can grow by 1cm per day
-        """
+        """ Plant can grow by 1cm per day """
         self.height += 1
         print(f"{self.name} grew 1cm")
 
+    def get_total_growth(self) -> float:
+        """Calculate how much the plant has grown """
+        return self.height - self.growth
+
     def print_plant(self) -> str:
-        """
-        Print the plant with their infos
-        """
+        """Print the plant with their infos """
         return (f"{self.name} {self.height}cm")
 
 
 class FloweringPlant(Plant):
-    """
-    Serves as a blueprint for any plant (Flower),
-    """
+    """Serves as a Blueprint for plant (Flower),"""
     def __init__(
             self,
             name: str,
@@ -43,30 +37,26 @@ class FloweringPlant(Plant):
             color: str
             ) -> None:
         """
-        Every plant(Flower) might have a name, height
-        and age also a color
+        Every plant(Flower) might have a name, height and age also a color
         """
         super().__init__(name, height)
         self.color = color
         self.blooming = True
 
     def bloom(self) -> str:
+        """Return current bloom status"""
         if (self.blooming):
             return ("blooming")
         return ("not blooming")
 
     def print_plant(self) -> str:
-        """
-        Print the plant with their infos
-        """
+        """ Print the plant with their infos add color and blooming"""
         get_info = super().print_plant()
         return f"{get_info}, {self.color} flowers ({self.bloom()})"
 
 
 class PrizeFlower(FloweringPlant):
-    """
-    Serves as a blueprint for any prize flower (Flower),
-    """
+    """Serves as a blueprint for any prize flower (PrizeFlower),"""
     def __init__(
             self,
             name: str,
@@ -75,37 +65,32 @@ class PrizeFlower(FloweringPlant):
             pts: int
             ) -> None:
         """
-        Every plant(Flower) might have a name, height
+        Every plant(PrizeFlower) might have a name, height
         and age also a color and points
         """
         super().__init__(name, height, color)
         self.pts = pts
 
     def print_plant(self) -> str:
-        """
-        Print the plant with their infos(prize)
-        """
+        """ Print the plant with their infos(prize) """
         get_info = super().print_plant()
         return f"{get_info}, Prize points: {self.pts}"
 
 
 class Garden:
-    """
-    Serves as a blueprint for any Garden.
-    """
+    """ Serves as a blueprint for any Garden. """
     def __init__(self, name: str) -> None:
-        """
-        Init the Garden Owner and his worth
-        """
+        """ Init the Garden Owner and his worth """
         self.name = name
         self.plants = []
 
     def add_plant(self, plant: Plant) -> None:
+        """ add Plant to self Garden """
         self.plants.append(plant)
         print(f"Added {plant.name} to {self.name}'s garden")
 
     def grow_all(self) -> None:
-        if self.plants == []:
+        if not self.plants:
             print(f"{self.name} has no plants")
         else:
             print(f"{self.name} is helping all plants grow...")
@@ -113,21 +98,20 @@ class Garden:
                 plant.grow()
 
     def report(self) -> None:
+        """Formated report for the self owner"""
         print(f"=== {self.name}'s Garden Report ===")
         for plant in self.plants:
             print(f"- {plant.print_plant()}")
 
 
 class GardenManager:
-    """
-    Serves as a blueprint for any GardenManager,
-    """
+    """Serves as a blueprint for any GardenManager."""
+
     gardens = {}
 
     class GardenStats:
-        """
-        Helper to calculat and manage statistics
-        """
+        """ Helper to calculat and manage statistics """
+
         @staticmethod
         def count_plants_types(plants: list) -> list:
             """
@@ -138,10 +122,10 @@ class GardenManager:
             flowring = 0
             prize = 0
             for plant in plants:
-                if isinstance(plant, FloweringPlant):
-                    flowring += 1
-                elif isinstance(plant, PrizeFlower):
+                if isinstance(plant, PrizeFlower):
                     prize += 1
+                elif isinstance(plant, FloweringPlant):
+                    flowring += 1
                 else:
                     regular += 1
             return [regular, flowring, prize]
@@ -153,44 +137,79 @@ class GardenManager:
             """
             cnt = 0
             for plant in plants:
-                cnt += plant.height
+                cnt += plant.get_total_growth()
             return cnt
 
         @staticmethod
+        def heights_validation(plants: list) -> bool:
+            """Check if there is a height grow or not"""
+            growth = GardenManager.GardenStats.total_growth(plants)
+            return (growth > 0)
+
+        @staticmethod
+        def calculate_score(plants: list) -> int:
+            """Calculate Garden Score based on: 
+            - Plant heights
+            - prize points
+            - bonus plants
+            """
+            if not plants:
+                return 0
+
+            score = 0
+            for plant in plants:
+                score += int(plant.height)
+                if isinstance(plant, PrizeFlower):
+                    score += plant.pts
+                score += len(plants) * 10
+            return score
+
+        @staticmethod
         def total_plants(plants: list) -> int:
-            """
-            Calculat the total plants
-            """
+            """ Calculat the total plants """
             return (len(plants))
 
     def add_garden(self, garden: Garden) -> None:
+        """ register a garden with the manager (instance method) """
         self.gardens[garden.name] = garden
 
     def analyse(self, name: str) -> None:
+        """ A summary about the garden """
         garden = self.gardens[name]
-        status = self.gardenStats
+        status = self.GardenStats
         values = status.count_plants_types(garden.plants)
         growth = status.total_growth(garden.plants)
-
         print(
                 f"Plants added: {len(garden.plants)}, "
                 f"Total growth: {growth}cm "
                 )
         print(
                 f"Plants types: {values[0]} regular, "
-                f"{values[1]}flowering, {values[2]} prize"
-                )
+                f"{values[1]} flowering, {values[2]} prize flowers")
 
     @classmethod
-    def create_garden_network(cls) -> None:
-        print(f"Total gardens managed: {len(cls.gardens)}")
+    def create_garden_network(cls: list) -> None:
+        """ display staticstics about all gardens """
+        if not cls.gardens:
+            print("No gardens in the network")
+        count = 0
+        print("Garden scores -", end="")
+        for name, garden in cls.gardens.items():
+            count += 1
+            score = cls.GardenStats.calculate_score(garden.plants)
+            print(f" {name}: {score}", end="")
+            if (count < len(cls.gardens) - 1):
+                print(",", end="")
+        print(f"\nTotal gardens managed: {count}")
 
 
 def main():
     print("=== Garden Management System Demo ===    ")
     alice = Garden("Alice")
+    bob = Garden("Bob")
     manager = GardenManager()
     manager.add_garden(alice)
+    manager.add_garden(bob)
     plants = [
             Plant("Oak Tree", 101),
             FloweringPlant("Rose", 26, "red"),
@@ -198,13 +217,13 @@ def main():
             ]
     for plant in plants:
         alice.add_plant(plant)
-    print()
+    print("")
     alice.grow_all()
-    print()
+    print("")
     alice.report()
-    print()
-    print(manager.analyse(alice.name))
-
+    print("")
+    manager.analyse(alice.name)
+    manager.create_garden_network()
 
 # This line means: "If someone runs this file directly, call main()"
 
