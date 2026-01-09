@@ -7,47 +7,35 @@ Class day
 
 
 class Plant:
-    """
-    Serves as a blueprint for any plant,
-    """
+    """ Serves as a blueprint for any plant. """
     def __init__(
             self,
             name: str,
             starting_height: float,
             starting_age: int
             ) -> None:
-        """
-        Every plant might have a name, height, and age
-        """
+        """ Every plant might have a name, height, and age """
         self.name = name
         self.starting_height = starting_height
         self.starting_age = starting_age
         self.height = starting_height
 
     def grow(self) -> None:
-        """
-        Grow by +1cm each day
-        """
+        """ Grow by +1cm each day """
         self.height += 1
 
     def age(self) -> None:
-        """
-        age of plant grow by +1day
-        """
+        """ age of plant day by +1day """
         self.starting_age += 1
 
-    def get_info(self):
-        """
-        Display the current plant status
-        """
+    def get_info(self) -> None:
+        """ Display the current plant status """
         print(self.print_plant())
         if (self.height > self.starting_height):
             print(f"Growth this week: +{self.height - self.starting_height}cm")
 
     def print_plant(self) -> str:
-        """
-        Print the plant with their infos
-        """
+        """ Print the plant with their infos """
         if (self.starting_age == 1):
             day = "day"
         else:
