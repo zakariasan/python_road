@@ -8,7 +8,7 @@ Class day
 
 class SecurePlant:
     """
-    Serves as a blueprint for any plant,
+    Serves as a blueprint for any plant.
     and Protect and ecapsulates sensitive data
     """
     def __init__(
@@ -17,32 +17,24 @@ class SecurePlant:
             height: float,
             age: int
             ) -> None:
-        """
-        Every plant might have a name, height, and age
-        """
+        """ Every plant might have a name, height, and age """
         self.name = name
         self.__height = 0
         self.__age = 0
-
+        print(f"Plant created: {self.name}")
         self.set_height(height)
         self.set_age(age)
 
     def get_height(self) -> float:
-        """
-        right acces to get height
-        """
+        """ right acces to get height """
         return self.__height
 
     def get_age(self) -> int:
-        """
-        Good way to get the age
-        """
+        """ Good way to get the age """
         return self.__age
 
     def set_height(self, value: float) -> None:
-        """
-        Let set the height in secure way
-        """
+        """ Let set the height in secure way """
         if (value >= 0):
             print(f"Height updated: {value}cm [OK]")
             self.__height = value
@@ -74,15 +66,15 @@ def main():
     A program that runs when executed directly
     $>python ft_*.py
     """
-    rose = SecurePlant("Rose", 5, 40)
     print("=== Garden Security System ===")
-    print(f"Plant created: {rose.name}")
+    rose = SecurePlant("Rose", 5, 40)
     rose.set_height(25)
     rose.set_age(30)
     print("")
     rose.set_height(-5)
     print("")
     print(f"Current plant: {rose.print_plant()}")
+
 
 # This line means: "If someone runs this file directly, call main()"
 if __name__ == "__main__":

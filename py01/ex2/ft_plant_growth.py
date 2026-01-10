@@ -51,9 +51,11 @@ def main():
     print("=== Day 1 ===")
     rose = Plant("Rose", 25, 30)
     rose.get_info()
-    for day in range(2, 8):
+    day = 2
+    while day < 8:
         rose.age()
         rose.grow()
+        day += 1
     print("=== Day 7 ===")
     rose.get_info()
 

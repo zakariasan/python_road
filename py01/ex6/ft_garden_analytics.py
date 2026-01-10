@@ -36,9 +36,7 @@ class FloweringPlant(Plant):
             height: float,
             color: str
             ) -> None:
-        """
-        Every plant(Flower) might have a name, height and age also a color
-        """
+        """ Every plant(Flower) might have a Plant attr,also a color """
         super().__init__(name, height)
         self.color = color
         self.blooming = True
@@ -87,7 +85,6 @@ class Garden:
     def add_plant(self, plant: Plant) -> None:
         """ add Plant to self Garden """
         self.plants.append(plant)
-        print(f"Added {plant.name} to {self.name}'s garden")
 
     def grow_all(self) -> None:
         if not self.plants:
@@ -122,9 +119,9 @@ class GardenManager:
             flowring = 0
             prize = 0
             for plant in plants:
-                if isinstance(plant, PrizeFlower):
+                if type(plant).__name__ == "PrizeFlower":
                     prize += 1
-                elif isinstance(plant, FloweringPlant):
+                elif type(plant).__name__ == "FloweringPlant":
                     flowring += 1
                 else:
                     regular += 1
@@ -148,7 +145,7 @@ class GardenManager:
 
         @staticmethod
         def calculate_score(plants: list) -> int:
-            """Calculate Garden Score based on: 
+            """Calculate Garden Score based on:
             - Plant heights
             - prize points
             - bonus plants
@@ -159,15 +156,18 @@ class GardenManager:
             score = 0
             for plant in plants:
                 score += int(plant.height)
-                if isinstance(plant, PrizeFlower):
+                if type(plant).__name__ == "PrizeFlower":
                     score += plant.pts
-                score += len(plants) * 10
+            score += GardenManager.GardenStats.total_plants(plants) * 10
             return score
 
         @staticmethod
         def total_plants(plants: list) -> int:
             """ Calculat the total plants """
-            return (len(plants))
+            count = 0
+            for _ in plants:
+                count += 1
+            return (count)
 
     def add_garden(self, garden: Garden) -> None:
         """ register a garden with the manager (instance method) """
@@ -194,11 +194,14 @@ class GardenManager:
             print("No gardens in the network")
         count = 0
         print("Garden scores -", end="")
+        size = 0
+        for _ in cls.gardens:
+            size += 1
         for name, garden in cls.gardens.items():
             count += 1
             score = cls.GardenStats.calculate_score(garden.plants)
             print(f" {name}: {score}", end="")
-            if (count < len(cls.gardens) - 1):
+            if (count <= size - 1):
                 print(",", end="")
         print(f"\nTotal gardens managed: {count}")
 
@@ -208,21 +211,31 @@ def main():
     alice = Garden("Alice")
     bob = Garden("Bob")
     manager = GardenManager()
+
     manager.add_garden(alice)
     manager.add_garden(bob)
     plants = [
-            Plant("Oak Tree", 101),
-            FloweringPlant("Rose", 26, "red"),
-            PrizeFlower("Sunflower", 51, "yellow", 10)
+            Plant("Oak Tree", 100),
+            FloweringPlant("Rose", 25, "red"),
+            PrizeFlower("Sunflower", 50, "yellow", 10)
             ]
     for plant in plants:
         alice.add_plant(plant)
-    print("")
+        print(f"Added {plant.name} to {alice.name}'s garden")
+
+    bob.add_plant(Plant("Cactus", 42))
+    bob.add_plant(Plant("Fern", 30))
+    print()
     alice.grow_all()
     print("")
     alice.report()
     print("")
+
     manager.analyse(alice.name)
+
+    print("\nHeight validation test: ", end="")
+    print(manager.GardenStats.heights_validation(alice.plants))
+
     manager.create_garden_network()
 
 # This line means: "If someone runs this file directly, call main()"
