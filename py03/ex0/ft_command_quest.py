@@ -2,6 +2,8 @@ import sys
 """
 Build a simple command interpreter that shows you’ve mastered the art
 of receiving external data.
+
+ Level 0: Command Quest - Master command-line communication
 """
 
 print("=== Command Quest ===")

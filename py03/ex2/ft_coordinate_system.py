@@ -2,6 +2,8 @@ import math
 
 """
 Let's deep dive into tuples and coordinat Creations
+
+Level 2: Position Tracker - Use tuples to navigate game worlds
 """
 
 print("=== Game Coordinate System ===\n")
@@ -31,10 +33,9 @@ except: # noqa
 
 print(f"Parsed position: {parsed_pos}")
 
-x1, y1, z1 = origin
 x2, y2, z2 = parsed_pos
-distance2 = math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
-print(f"Distance between {origin} and {parsed_pos}: {distance2:.2f}\n")
+distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
+print(f"Distance between {origin} and {parsed_pos}: {distance}\n")
 
 invalid_string = "abc,def,ghi"
 print(f"Parsing invalid coordinates: \"{invalid_string}\"")

@@ -1,115 +1,102 @@
 import sys
+"""
+Level 4: Inventory Master - Build complex systems with dictionaries
+"""
 
-# Create inventory dictionary from command line arguments
-# Format: item:quantity (e.g., sword:1 potion:5)
-inventory = dict()
+my_dict = dict()
 
-# Parse arguments
 for arg in sys.argv:
     if ':' in arg:
-        parts = arg.split(':')
-        item_name = parts[0]
-        quantity = int(parts[1])
-        inventory.update({item_name: quantity})
+        try:
+            parts = arg.split(':')
+            item_name = parts[0]
+            quantity = int(parts[1])
+            my_dict[item_name] = quantity
+        except: # noqa
+            print("Error: invalid literal for int()", end="")
+            print(f" with base 10: '{parts[1]}' ")
 
 print("=== Inventory System Analysis ===")
 
-# Calculate total items
 total_items = 0
-for quantity in inventory.values():
-    total_items = total_items + quantity
+for quantity in my_dict.values():
+    total_items += quantity
 
-print(f"Total items in inventory: {total_items}")
-print(f"Unique item types: {len(inventory)}")
+print(f"Total items in my_dict: {total_items}")
+print(f"Unique item types: {len(my_dict)}")
 
 print("\n=== Current Inventory ===")
 
-# Create list of items for sorting
-sorted_items = []
-for item, quantity in inventory.items():
-    sorted_items.append((item, quantity))
+new_dict = dict()
+for g_item, g_quantity in my_dict.items():
+    m_key = None
+    m_value = 0
+    for item, quantity in my_dict.items():
+        if item not in new_dict and quantity > m_value:
+            m_key = item
+            m_value = quantity
+    new_dict[m_key] = m_value
 
-# Manual bubble sort (descending by quantity)
-swapped = True
-while swapped:
-    swapped = False
-    i = 0
-    for item1, qty1 in sorted_items:
-        try:
-            item2, qty2 = sorted_items[i + 1]
-            if qty1 < qty2:
-                sorted_items[i] = (item2, qty2)
-                sorted_items[i + 1] = (item1, qty1)
-                swapped = True
-            i = i + 1
-        except:
-            break
-
-# Display sorted inventory with percentages
-for item, quantity in sorted_items:
+for item, quantity in new_dict.items():
     percentage = (quantity / total_items) * 100
     unit_text = "unit" if quantity == 1 else "units"
     print(f"{item}: {quantity} {unit_text} ({percentage:.1f}%)")
 
 print("\n=== Inventory Statistics ===")
 
-# Find most and least abundant
-most_abundant_item = ""
-most_abundant_qty = 0
-least_abundant_item = ""
-least_abundant_qty = total_items + 1
+most_item = ""
+most_qty = 0
+least_item = ""
+least_qty = total_items + 1
 
-for item, quantity in inventory.items():
-    if quantity > most_abundant_qty:
-        most_abundant_qty = quantity
-        most_abundant_item = item
-    if quantity < least_abundant_qty:
-        least_abundant_qty = quantity
-        least_abundant_item = item
+for item, quantity in my_dict.items():
+    if quantity > most_qty:
+        most_qty = quantity
+        most_item = item
+    if quantity < least_qty:
+        least_qty = quantity
+        least_item = item
 
-print(f"Most abundant: {most_abundant_item} ({most_abundant_qty} units)")
-print(f"Least abundant: {least_abundant_item} ({least_abundant_qty} unit{'s' if least_abundant_qty > 1 else ''})")
+txt = "unit" if least_qty == 1 else "units"
+print(f"Most abundant: {most_item} ({most_qty} units)")
+print(f"Least abundant: {least_item} ({least_qty} {txt})")
 
 print("\n=== Item Categories ===")
 
-# Categorize items: Moderate (>= 5), Scarce (< 5)
 moderate = dict()
 scarce = dict()
 
-for item, quantity in inventory.items():
+for item, quantity in my_dict.items():
     if quantity >= 5:
-        moderate.update({item: quantity})
+        moderate[item] = quantity
     else:
-        scarce.update({item: quantity})
+        scarce[item] = quantity
 
 print(f"Moderate: {moderate}")
 print(f"Scarce: {scarce}")
 
 print("\n=== Management Suggestions ===")
 
-# Items that need restocking (quantity <= 2)
-restock_needed = []
-for item, quantity in inventory.items():
-    if quantity <= 2:
-        restock_needed.append(item)
+restor = []
+for item, quantity in my_dict.items():
+    if quantity < 2:
+        restor += [item]
 
-print(f"Restock needed: {restock_needed}")
+print(f"Restock needed: {restor}")
 
 print("\n=== Dictionary Properties Demo ===")
 
-# Convert keys and values to lists for display
 keys_list = []
-for key in inventory.keys():
-    keys_list.append(key)
+for key in my_dict.keys():
+    keys_list += [key]
 
 values_list = []
-for value in inventory.values():
-    values_list.append(value)
+for value in my_dict.values():
+    values_list += [value]
 
 print(f"Dictionary keys: {keys_list}")
 print(f"Dictionary values: {values_list}")
 
-# Sample lookup using get()
 sample_item = 'sword'
-has_item = inventory.get(sample_item) is not None
-print(f"Sample lookup - '{sample_item}' in inventory: {has_item}")
+has_item = my_dict.get(sample_item) is not None
+print(f"Sample lookup - '{sample_item}' in my_dict: {has_item}")

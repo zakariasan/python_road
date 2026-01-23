@@ -2,7 +2,10 @@ import sys
 """
     Build a simple command interpreter that shows you’ve mastered the art
     of receiving external data.
+
+    Level 1: Score Cruncher - Master lists by analyzing player scores
 """
+
 av = sys.argv
 print("=== Player Score Analytics ===")
 
