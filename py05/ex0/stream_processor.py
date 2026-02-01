@@ -28,10 +28,8 @@ class NumericProcessor(DataProcessor):
         try:
             for item in data:
                 float(item)
-            print("Validation: Numeric data verified")
             return True
         except: # noqa
-            print("Validation: Numeric data Not verified")
             return False
 
     def process(self, data: Any) -> str:
@@ -58,10 +56,8 @@ class TextProcessor(DataProcessor):
         """Validate text data"""
         try:
             str(data)
-            print("Validation: Text data verified")
             return True
         except: # noqa
-            print("Validation: Invalid text data")
             return False
 
     def process(self, data: Any) -> str:
@@ -105,7 +101,6 @@ class LogProcessor(DataProcessor):
                     "INFO" in data_upper
                     or
                     "DEBUG" in data_upper):
-                print("Validation: Log entry verified")
                 return True
             return False
         except: # noqa
@@ -146,8 +141,12 @@ def main() -> None:
     print()
     print("Initializing Numeric Processor...")
     numeric_proc = NumericProcessor()
-    data = [1, 2, 3, 4, 5]
+    data: List = [1, 2, 3, 4, 5]
     print(f"Processing data: {data}")
+    if numeric_proc.validate(data):
+        print("Validation: Numeric data verified")
+    else:
+        print("Validation: Numeric data Not verified")
     result = numeric_proc.process(data)
     print(numeric_proc.format_output(result))
 
@@ -155,12 +154,21 @@ def main() -> None:
     print("Initializing Text Processor...")
     text_proc = TextProcessor()
     print('Processing data: "Hello Nexus World"')
+    if text_proc.validate("Hello Nexus World"):
+        print("Validation: Text data verified")
+    else:
+        print("Validation: Invalid text data")
     result = text_proc.process("Hello Nexus World")
     print(text_proc.format_output(result))
+
     print()
     print("Initializing Log Processor...")
     log_proc = LogProcessor()
     print('Processing data: "ERROR: Connection timeout"')
+    if log_proc.validate("ERROR: Connection timeout"):
+        print("Validation: Log entry verified")
+    else:
+        print("Validation: Invalid Log Entry")
     result = log_proc.process("ERROR: Connection timeout")
     print(log_proc.format_output(result))
 
@@ -168,23 +176,14 @@ def main() -> None:
     print("=== Polymorphic Processing Demo ===")
     print("Processing multiple data types through same interface...")
 
-    processors: List[DataProcessor] = [
-        NumericProcessor(),
-        TextProcessor(),
-        LogProcessor()
-    ]
+    result = numeric_proc.process([1, 2, 3])
+    print(f"Result 1: {result}")
 
-    test_data: List[Any] = [
-        [1, 2, 3],
-        "Hello World!",
-        "INFO: System ready"
-    ]
+    result = text_proc.process("Hello World!")
+    print(f"Result 1: {result}")
 
-    result_num = 1
-    for processor, data in zip(processors, test_data):
-        result = processor.process(data)
-        print(f"Result {result_num}: {result}")
-        result_num = result_num + 1
+    result = log_proc.process("INFO: System ready")
+    print(f"Result 1: {result}")
 
     print()
     print("Foundation systems online. Nexus ready for advanced streams.")
