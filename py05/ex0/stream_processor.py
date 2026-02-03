@@ -1,5 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, List
+"""
+Phase Alpha: Data Processor Foundation - Forge your first neural pathways
+with method overriding
+"""
 
 
 class DataProcessor(ABC):
