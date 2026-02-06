@@ -129,7 +129,7 @@ def generate_maze(stdscr, grid, width, height):
     current.visited = True
 
     draw_grid(stdscr, grid, width, height)
-    time.sleep(0.3)
+    time.sleep(1)
 
     # Stack for backtracking
     stack = [current]
@@ -156,7 +156,7 @@ def generate_maze(stdscr, grid, width, height):
 
             # Draw and animate
             draw_grid(stdscr, grid, width, height)
-            time.sleep(0.05)
+            time.sleep(1)
         else:
             # No unvisited neighbors - backtrack by popping from stack
             current = stack.pop()

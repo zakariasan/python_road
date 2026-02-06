@@ -65,9 +65,11 @@ def main(stdscr):
     # Define grid dimensions
     width, height = 10, 7
 
-    # Create and draw the grid
-    grid = create_grid(width, height)
-    draw_grid(stdscr, grid, width, height)
+    #  Create and draw the grid
+    grid = Cell(0, 0)
+    grid.draw(stdscr)
+    #grid = create_grid(width, height)
+    #draw_grid(stdscr, grid, width, height)
 
     # Wait for user input before exiting
     stdscr.addstr(height * 2 + 3, 0, "Press any key to exit")
