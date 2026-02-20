@@ -119,9 +119,7 @@ class Maze:
         """Generate maze using recursive backtracking"""
         current = self.grid[0][0]
         current.visited = True
-        
         stack = [current]
-        
         if animate:
             self.draw_grid(stdscr)
             time.sleep(0.3)
