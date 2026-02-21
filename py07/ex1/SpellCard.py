@@ -17,8 +17,8 @@ class SpellCard(Card):
             effect_type: str
             ) -> None:
         super().__init__(name, cost, rarity)
-        self.effect_type = effect_type  # damage, heal, buff, debuff
-        self.used = False  # spells are consumed when played
+        self.effect_type = effect_type
+        self.used = False
 
     def play(self, game_state: dict) -> dict:
         """Play the spell - one time use"""

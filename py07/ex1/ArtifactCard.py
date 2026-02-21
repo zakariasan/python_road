@@ -18,8 +18,8 @@ class ArtifactCard(Card):
             effect: str
             ) -> None:
         super().__init__(name, cost, rarity)
-        self.durability = durability   # how many uses before destroyed
-        self.effect = effect           # description of permanent ability
+        self.durability = durability
+        self.effect = effect
         self.active = True
 
     def play(self, game_state: dict) -> dict:
