@@ -17,6 +17,7 @@ class ArtifactCard(Card):
             durability: int,
             effect: str
             ) -> None:
+        """ Starting form the Art of Card"""
         super().__init__(name, cost, rarity)
         self.durability = durability
         self.effect = effect

@@ -29,6 +29,7 @@ class TournamentCard(Card, Combatable, Rankable):
             defense: int,
             base_rating: int = 1000
             ) -> None:
+        """Constructor of all """
         super().__init__(name, cost, rarity)
         self.attack_power = attack_power
         self.defense = defense
@@ -37,7 +38,6 @@ class TournamentCard(Card, Combatable, Rankable):
         self._losses = 0
         self._rating = base_rating
 
-    # ── Card abstract method ──────────────────────────────────────────
     def play(self, game_state: dict) -> dict:
         """Play the tournament card"""
         return {
@@ -57,7 +57,6 @@ class TournamentCard(Card, Combatable, Rankable):
         })
         return info
 
-    # ── Combatable abstract methods ───────────────────────────────────
     def attack(self, target) -> dict:
         """Attack a target"""
         return {
@@ -88,10 +87,11 @@ class TournamentCard(Card, Combatable, Rankable):
             "health": self.health
         }
 
-    # ── Rankable abstract methods ─────────────────────────────────────
     def calculate_rating(self) -> int:
         """ELO-style rating: base + wins*16 - losses*16"""
-        self._rating = self.BASE_RATING + (self._wins * 16) - (self._losses * 16)
+        win = (self._wins * 16)
+        loss = (self._losses * 16)
+        self._rating = self.BASE_RATING + win - loss
         return self._rating
 
     def update_wins(self, wins: int) -> None:
@@ -114,7 +114,6 @@ class TournamentCard(Card, Combatable, Rankable):
             "record": f"{self._wins}-{self._losses}"
         }
 
-    # ── Tournament specific ───────────────────────────────────────────
     def get_tournament_stats(self) -> dict:
         """Return combined card + rank stats"""
         return {

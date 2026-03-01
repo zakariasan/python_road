@@ -29,10 +29,9 @@ class AggressiveStrategy(GameStrategy):
         - Play lowest cost cards first to flood the board
         - Attack enemy player directly
         """
-        # Sort hand by cost ascending (cheap cards first)
         sorted_hand = sorted(hand, key=lambda c: c.cost)
 
-        mana_budget = 10  # available mana for this turn
+        mana_budget = 10
         cards_played = []
         mana_used = 0
         damage_dealt = 0
@@ -41,7 +40,6 @@ class AggressiveStrategy(GameStrategy):
             if card.cost <= (mana_budget - mana_used):
                 cards_played.append(card.name)
                 mana_used += card.cost
-                # creatures deal their attack, spells deal cost as damage
                 card_info = card.get_card_info()
                 if card_info.get("type") == "Creature":
                     damage_dealt += card_info.get("attack", card.cost)

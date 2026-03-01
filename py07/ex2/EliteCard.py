@@ -8,9 +8,6 @@ from ex2.Magical import Magical
 
 class EliteCard(Card, Combatable, Magical):
     """
-    A powerful card that combines card fundamentals
-    with combat AND magical abilities.
-
     Multiple inheritance means this class must implement
     ALL abstract methods from Card, Combatable, and Magical.
     """
@@ -24,13 +21,13 @@ class EliteCard(Card, Combatable, Magical):
             defense: int,
             mana_pool: int
             ) -> None:
+        """ Constructor of a Elit Card That get mana from ^^^ """
         super().__init__(name, cost, rarity)
-        self.attack_power = attack_power  # combat damage
-        self.defense = defense            # damage blocking
-        self.mana_pool = mana_pool        # available magic mana
-        self.health = defense * 2        # health based on defense
+        self.attack_power = attack_power
+        self.defense = defense
+        self.mana_pool = mana_pool
+        self.health = defense * 2
 
-    # ── Card abstract method ──────────────────────────────────────────
     def play(self, game_state: dict) -> dict:
         """Play the elite card onto the battlefield"""
         return {
@@ -51,7 +48,6 @@ class EliteCard(Card, Combatable, Magical):
         })
         return info
 
-    # ── Combatable abstract methods ───────────────────────────────────
     def attack(self, target) -> dict:
         """Attack a target with melee damage"""
         return {
@@ -82,10 +78,9 @@ class EliteCard(Card, Combatable, Magical):
             "health": self.health
         }
 
-    # ── Magical abstract methods ──────────────────────────────────────
     def cast_spell(self, spell_name: str, targets: list) -> dict:
         """Cast a spell consuming mana"""
-        mana_cost = len(targets) + 1  # simple cost: 1 per target + 1 base
+        mana_cost = len(targets) + 1
         self.mana_pool -= mana_cost
         return {
             "caster": self.name,

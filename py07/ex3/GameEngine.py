@@ -1,93 +1,68 @@
 """
-FantasyCardFactory - Creates fantasy themed cards
+GameEngine - Orchestrates factory + strategy together
 """
-import random
 from ex3.CardFactory import CardFactory
-from ex0.Card import Card
-from ex0.CreatureCard import CreatureCard
-from ex1.SpellCard import SpellCard
-from ex1.ArtifactCard import ArtifactCard
+from ex3.GameStrategy import GameStrategy
 
 
-class FantasyCardFactory(CardFactory):
+class GameEngine:
     """
-    Concrete factory that creates fantasy-themed cards:
-    creatures like Dragons and Goblins, elemental spells,
-    and magical artifacts.
+    The brain of DataDeck.
+    Combines a CardFactory (what cards exist) with a
+    GameStrategy (how to play them) to simulate turns.
     """
 
-    # Card templates - easy to extend with new types
-    _creatures = {
-        "dragon": ("Fire Dragon", 5, "Legendary", 7, 5),
-        "goblin": ("Goblin Warrior", 2, "Common", 3, 2),
-        "knight": ("Iron Knight", 4, "Rare", 4, 6),
-    }
+    def __init__(self) -> None:
+        """Gat starting """
+        self._factory: CardFactory | None = None
+        self._strategy: GameStrategy | None = None
+        self._turns_simulated: int = 0
+        self._total_damage: int = 0
+        self._cards_created: int = 0
+        self._hand: list = []
 
-    _spells = {
-        "fireball": ("Fireball", 4, "Rare", "damage"),
-        "lightning": ("Lightning Bolt", 3, "Common", "damage"),
-        "heal": ("Holy Light", 2, "Common", "heal"),
-    }
+    def configure_engine(
+            self,
+            factory: CardFactory,
+            strategy: GameStrategy
+            ) -> None:
+        """Set which factory and strategy the engine uses"""
+        self._factory = factory
+        self._strategy = strategy
 
-    _artifacts = {
-        "mana_ring": ("Mana Ring", 2, "Rare", 5, "+1 mana per turn"),
-        "staff": ("Arcane Staff", 3, "Rare", 4, "+2 spell damage"),
-        "crystal": ("Mana Crystal", 1, "Common", 3, "+1 mana per turn"),
-    }
+        dragon = self._factory.create_creature("dragon")
+        goblin = self._factory.create_creature("goblin")
+        bolt = self._factory.create_spell("lightning")
+        self._hand = [dragon, goblin, bolt]
+        self._cards_created = len(self._hand)
 
-    def create_creature(self, name_or_power: str | int | None = None) -> Card:
-        """Create a fantasy creature. Pass a key like 'dragon' or None for random."""
-        if isinstance(name_or_power, str) and name_or_power in self._creatures:
-            data = self._creatures[name_or_power]
-        else:
-            data = random.choice(list(self._creatures.values()))
-        name, cost, rarity, attack, health = data
-        return CreatureCard(name, cost, rarity, attack, health)
+    def simulate_turn(self) -> dict:
+        """Run one turn using the configured strategy"""
+        if not self._factory or not self._strategy:
+            return {"error": "Engine not configured"}
 
-    def create_spell(self, name_or_power: str | int | None = None) -> Card:
-        """Create a fantasy spell. Pass a key like 'fireball' or None for random."""
-        if isinstance(name_or_power, str) and name_or_power in self._spells:
-            data = self._spells[name_or_power]
-        else:
-            data = random.choice(list(self._spells.values()))
-        name, cost, rarity, effect_type = data
-        return SpellCard(name, cost, rarity, effect_type)
+        hand_display = [
+            f"{c.name} ({c.cost})" for c in self._hand
+        ]
+        print(f"Hand: [{', '.join(hand_display)}]")
+        print()
 
-    def create_artifact(self, name_or_power: str | int | None = None) -> Card:
-        """Create a fantasy artifact. Pass a key like 'mana_ring' or None for random."""
-        if isinstance(name_or_power, str) and name_or_power in self._artifacts:
-            data = self._artifacts[name_or_power]
-        else:
-            data = random.choice(list(self._artifacts.values()))
-        name, cost, rarity, durability, effect = data
-        return ArtifactCard(name, cost, rarity, durability, effect)
+        result = self._strategy.execute_turn(self._hand, [])
 
-    def create_themed_deck(self, size: int) -> dict:
-        """Create a balanced themed deck of given size"""
-        creatures = []
-        spells = []
-        artifacts = []
-
-        for i in range(size):
-            roll = i % 3
-            if roll == 0:
-                creatures.append(self.create_creature())
-            elif roll == 1:
-                spells.append(self.create_spell())
-            else:
-                artifacts.append(self.create_artifact())
+        self._turns_simulated += 1
+        self._total_damage += result.get("damage_dealt", 0)
 
         return {
-            "creatures": creatures,
-            "spells": spells,
-            "artifacts": artifacts,
-            "total": size
+            "strategy": self._strategy.get_strategy_name(),
+            "actions": result
         }
 
-    def get_supported_types(self) -> dict:
-        """Return all card types this factory supports"""
+    def get_engine_status(self) -> dict:
+        """Return a report of engine activity"""
         return {
-            "creatures": list(self._creatures.keys()),
-            "spells": list(self._spells.keys()),
-            "artifacts": list(self._artifacts.keys())
+            "turns_simulated": self._turns_simulated,
+            "strategy_used": self._strategy.get_strategy_name()
+            if self._strategy else None,
+            "total_damage": self._total_damage,
+            "cards_created": self._cards_created
         }

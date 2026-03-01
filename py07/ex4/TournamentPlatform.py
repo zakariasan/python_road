@@ -14,7 +14,7 @@ class TournamentPlatform:
     """
 
     def __init__(self) -> None:
-        # card_id -> TournamentCard
+        """ card_id -> TournamentCard """
         self._roster: dict[str, TournamentCard] = {}
         self._matches_played: int = 0
 
@@ -26,13 +26,11 @@ class TournamentPlatform:
         base = card.name.split()[-1].lower()
         card_id = f"{base}_001"
 
-        # If ID already taken, increment suffix
         counter = 1
         while card_id in self._roster:
             counter += 1
             card_id = f"{base}_{counter:03d}"
 
-        # Set the card's starting rating
         card.calculate_rating()
         self._roster[card_id] = card
         return card_id
@@ -49,7 +47,6 @@ class TournamentPlatform:
         card1 = self._roster[card1_id]
         card2 = self._roster[card2_id]
 
-        # Determine winner: attack_power + random luck factor
         score1 = card1.attack_power + random.randint(0, 5)
         score2 = card2.attack_power + random.randint(0, 5)
 
@@ -60,7 +57,6 @@ class TournamentPlatform:
             winner_id, loser_id = card2_id, card1_id
             winner, loser = card2, card1
 
-        # Update records
         winner.update_wins(1)
         loser.update_losses(1)
         self._matches_played += 1

@@ -16,11 +16,10 @@ class FantasyCardFactory(CardFactory):
     and magical artifacts.
     """
 
-    # Card templates - easy to extend with new types
     _creatures = {
         "dragon": ("Fire Dragon", 5, "Legendary", 7, 5),
         "goblin": ("Goblin Warrior", 2, "Common", 3, 2),
-        "knight": ("Iron Knight", 4, "Rare", 4, 6),
+        # "knight": ("Iron Knight", 4, "Rare", 4, 6),
     }
 
     _spells = {
@@ -36,7 +35,7 @@ class FantasyCardFactory(CardFactory):
     }
 
     def create_creature(self, name_or_power: str | int | None = None) -> Card:
-        """Create a fantasy creature. Pass a key like 'dragon' or None for random."""
+        """Create a fantasy creature."""
         if isinstance(name_or_power, str) and name_or_power in self._creatures:
             data = self._creatures[name_or_power]
         else:
@@ -45,7 +44,7 @@ class FantasyCardFactory(CardFactory):
         return CreatureCard(name, cost, rarity, attack, health)
 
     def create_spell(self, name_or_power: str | int | None = None) -> Card:
-        """Create a fantasy spell. Pass a key like 'fireball' or None for random."""
+        """Create a fantasy spell."""
         if isinstance(name_or_power, str) and name_or_power in self._spells:
             data = self._spells[name_or_power]
         else:
@@ -54,7 +53,7 @@ class FantasyCardFactory(CardFactory):
         return SpellCard(name, cost, rarity, effect_type)
 
     def create_artifact(self, name_or_power: str | int | None = None) -> Card:
-        """Create a fantasy artifact. Pass a key like 'mana_ring' or None for random."""
+        """Create a fantasy artifacttt."""
         if isinstance(name_or_power, str) and name_or_power in self._artifacts:
             data = self._artifacts[name_or_power]
         else:

@@ -12,7 +12,6 @@ def main() -> None:
 
     print("Registering Tournament Cards...\n")
 
-    # Create two tournament cards
     dragon = TournamentCard(
         name="Fire Dragon",
         cost=5,
@@ -30,11 +29,9 @@ def main() -> None:
         base_rating=1000
     )
 
-    # Register both cards
     dragon_id = platform.register_card(dragon)
     wizard_id = platform.register_card(wizard)
 
-    # Display registration info
     for card_id, card in [(dragon_id, dragon), (wizard_id, wizard)]:
         info = card.get_rank_info()
         print(f"{card.name} (ID: {card_id}):")
@@ -43,13 +40,11 @@ def main() -> None:
         print(f"- Record: {info['record']}")
         print()
 
-    # Run a match
     print("Creating tournament match...")
     result = platform.create_match(dragon_id, wizard_id)
     print(f"Match result: {result}")
     print()
 
-    # Leaderboard
     print("Tournament Leaderboard:")
     for entry in platform.get_leaderboard():
         print(
@@ -59,8 +54,7 @@ def main() -> None:
         )
     print()
 
-    # Platform report
-    print(f"Platform Report:")
+    print("Platform Report:")
     print(platform.generate_tournament_report())
     print()
 
@@ -68,5 +62,4 @@ def main() -> None:
     print("All abstract patterns working together harmoniously!")
 
 
-if __name__ == "__main__":
-    main()
+main()

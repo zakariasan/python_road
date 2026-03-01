@@ -29,12 +29,11 @@ def main() -> None:
     print(f"Actions: {turn['actions']}")
     print()
 
-    print(f"Game Report:")
+    print("Game Report:")
     print(engine.get_engine_status())
     print()
 
     print("Abstract Factory + Strategy Pattern: Maximum flexibility achieved!")
 
 
-if __name__ == "__main__":
-    main()
+main()

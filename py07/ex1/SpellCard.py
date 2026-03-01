@@ -16,6 +16,7 @@ class SpellCard(Card):
             rarity: str,
             effect_type: str
             ) -> None:
+        """ instance of spellCard """
         super().__init__(name, cost, rarity)
         self.effect_type = effect_type
         self.used = False
@@ -23,7 +24,15 @@ class SpellCard(Card):
     def play(self, game_state: dict) -> dict:
         """Play the spell - one time use"""
         self.used = True
-        effect_desc = self._get_effect_description()
+        descriptions = {
+            "damage": f"Deal {self.cost} damage to target",
+            "heal": f"Restore {self.cost * 2} health",
+            "buff": f"Grant +{self.cost} attack to ally",
+            "debuff": f"Reduce enemy attack by {self.cost}"
+        }
+        effect_desc = descriptions.get(
+                self.effect_type,
+                f"Apply {self.effect_type} effect")
         return {
             **game_state,
             "card_played": self.name,
@@ -49,15 +58,3 @@ class SpellCard(Card):
             "used": self.used
         })
         return info
-
-    def _get_effect_description(self) -> str:
-        """Return a description based on effect type"""
-        descriptions = {
-            "damage": f"Deal {self.cost} damage to target",
-            "heal": f"Restore {self.cost * 2} health",
-            "buff": f"Grant +{self.cost} attack to ally",
-            "debuff": f"Reduce enemy attack by {self.cost}"
-        }
-        return descriptions.get(
-                self.effect_type,
-                f"Apply {self.effect_type} effect")

@@ -12,6 +12,7 @@ class Deck:
     Can hold any card type that inherits from Card.
     """
     def __init__(self) -> None:
+        """ Plat where we can play with our Cards """
         self._cards: list[Card] = []
 
     def add_card(self, card: Card) -> None:
@@ -19,7 +20,7 @@ class Deck:
         self._cards.append(card)
 
     def remove_card(self, card_name: str) -> bool:
-        """Remove a card by name, returns True if found and removed"""
+        """Remove a card by name"""
         for card in self._cards:
             if card.name == card_name:
                 self._cards.remove(card)
