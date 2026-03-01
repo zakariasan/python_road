@@ -145,7 +145,7 @@ def main() -> None:
     print()
     print("Initializing Numeric Processor...")
     numeric_proc = NumericProcessor()
-    data: List = [1, 2, 3, 4, 5]
+    data: List = 5
     print(f"Processing data: {data}")
     if numeric_proc.validate(data):
         print("Validation: Numeric data verified")
