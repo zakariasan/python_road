@@ -24,26 +24,29 @@ def spell_sequence(spells: list[callable]) -> callable:
 
 
 if __name__ == '__main__':
-    fireball = lambda target: f"Fireball hits {target}" # noqa
-    heal     = lambda target: f"Heals {target}" # noqa
-    damage   = lambda power: power * 2 # noqa
-    is_enemy = lambda target: target in ['Dragon', 'Orc', 'Troll'] # noqa
-
     print("Testing spell combiner...")
-    combined = spell_combiner(fireball, heal)
+    combined = spell_combiner(
+            lambda target: f"Fireball hits {target}",
+            lambda target: f"Heals {target}"
+            )
     result = combined("Dragon")
     print(f"Combined spell result: {result[0]}, {result[1]}")
 
     print("\nTesting power amplifier...")
-    mega_damage = power_amplifier(damage, 3)
-    print(f"Original: {damage(10)}, Amplified: {mega_damage(10)}")
+    mega_damage = power_amplifier(lambda power: power * 2, 3)
+    print(f"Original: 20, Amplified: {mega_damage(10)}")
 
     print("\nTesting conditional caster...")
-    guarded_fireball = conditional_caster(is_enemy, fireball)
+    guarded_fireball = conditional_caster(
+            lambda target: target in ['Dragon', 'Orc', 'Troll'],
+            lambda target: f"Fireball hits {target}")
     print(guarded_fireball("Dragon"))
     print(guarded_fireball("Villager"))
 
     print("\nTesting spell sequence...")
-    sequence = spell_sequence([fireball, heal, fireball])
+    sequence = spell_sequence(
+            [lambda target: f"Fireball hits {target}",
+             lambda target: f"Heals {target}",
+             lambda target: f"Fireball hits {target}"])
     for result in sequence("Dragon"):
         print(result)
