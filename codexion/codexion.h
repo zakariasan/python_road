@@ -1,21 +1,34 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   codexion.h                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/03/12 03:28:00 by zhaouzan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CODEXION_H
 # define CODEXION_H
 
-#include <unistd.h>
-#include <stdio.h>
-#include <pthread.h>
-#include <stdlib.h>
+# include <unistd.h>
+# include <stdio.h>
+# include <pthread.h>
+# include <stdlib.h>
 
 typedef struct s_dongle
 {
-	long	d_cooldown;
-	int		id;
-  int   owner;
+	long long	released;
+	long		d_cooldown;
+	int			id;
+	int			owner;
 }				t_dongle;
-
 
 typedef struct s_coder
 {
+	long long	start_time;
 	pthread_t	thread;
 	t_dongle	*right;
 	t_dongle	*left;
@@ -25,7 +38,7 @@ typedef struct s_coder
 	int			id;
 }				t_coder;
 
-enum scheduler
+enum e_scheduler
 {
 	fifo,
 	edf
