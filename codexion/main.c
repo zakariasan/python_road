@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/03/12 03:45:27 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/03/14 13:07:23 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,8 +66,8 @@ void	release_dongle(t_dongle *dongle)
 {
 	dongle->owner = -1;
 	dongle->released = get_time_ms();
-	usleep(dongle->d_cooldown * 1000);
 }
+
 void	*coder_rotine(void *args)
 {
 	t_coder	*coder;
@@ -77,47 +77,50 @@ void	*coder_rotine(void *args)
 	take_dongle(coder->right, coder, coder->start_time);
 	if (coder->left->owner == coder->id && coder->right->owner == coder->id)
 	{
-		loging(coder->id, get_time_ms(), "is compiling");
-		usleep(coder->time_to_compile * 1000);
-		loging(coder->id, get_time_ms(), "is debugging");
-		usleep(coder->time_to_compile * 1000);
-		loging(coder->id, get_time_ms(), "is refactoring");
+		loging(coder->id, coder->start_time, "is compiling");
 		usleep(coder->time_to_compile * 1000);
 		release_dongle(coder->left);
 		release_dongle(coder->right);
+		loging(coder->id, coder->start_time, "is debugging");
+		usleep(coder->time_to_debug * 1000);
+		loging(coder->id, coder->start_time, "is refactoring");
+		usleep(coder->time_to_refactor * 1000);
+		
 	}
 	return (NULL);
 }
 
-
-
-
-
 int main()
 {
-	long long	start_time;
 	t_coder 	*coder;
 	t_dongle 	*dongle;
 
 	dongle = malloc(sizeof(t_dongle) * 2);
-	coder = malloc(sizeof(t_coder));
+	coder = malloc(sizeof(t_coder) * 2);
 	if (!coder || !dongle)
 		return (-1);
-	init_coder(coder, 1, 100, 100, 100);
+	init_coder(coder, 1, 200, 200, 200);
+	init_coder(coder + 1, 2, 200, 200, 200);
 	init_dongle(dongle, 1, 200, -1);
 	init_dongle(dongle + 1, 1, 200, -1);
-	coder->right = dongle;
-	coder->left = dongle + 1;
-	start_time = get_time_ms();
+	coder[0].right = dongle;
+	coder[0].left = dongle + 1;
+	
+	coder[1].right = dongle;
+	coder[1].left = dongle + 1;
+
+	coder->start_time = get_time_ms();
+	(coder + 1)->start_time = get_time_ms();
 
 	if (pthread_create(&coder->thread, NULL, coder_rotine, coder) != 0)
-	{
-		free(coder);
 		return (-1);
-	}
+	if (pthread_create(&(coder + 1)->thread, NULL, coder_rotine, coder + 1) != 0)
+		return (-1);
 	if (pthread_join(coder->thread, NULL) != 0)
 		return (-1);
-	free(coder);
+	
+	if (pthread_join((coder + 1)->thread, NULL) != 0)
+		return (-1);
 	return (0);
 };
 
