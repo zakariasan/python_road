@@ -20,6 +20,7 @@
 
 typedef struct s_dongle
 {
+  pthread_mutex_t mutex;
 	long long	released;
 	long		d_cooldown;
 	int			id;

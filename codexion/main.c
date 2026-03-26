@@ -31,6 +31,7 @@ void init_dongle(t_dongle *dongle, int id, long cooldown, int owner)
 	dongle->id = id;
 	dongle->d_cooldown = cooldown;
 	dongle->owner = owner;
+  pthread_mutex_init(&dongle->mutex, NULL);
 }
 
 long long	get_time_ms(void)
@@ -53,19 +54,24 @@ void take_dongle(t_dongle *dongle, t_coder *coder, long long time)
 {
 	long long	time_used;
 
+  pthread_mutex_lock(&dongle->mutex);
 	time_used = get_time_ms() - dongle->released;
 	if (dongle->owner == -1 && time_used >= dongle->d_cooldown)
 	{
 		dongle->owner = coder->id;
+    pthread_mutex_unlock(&dongle->mutex);
 		loging(coder->id, time, "has taken a dongle");
 		return;
 	}
+  pthread_mutex_unlock(&dongle->mutex);
 }
 
 void	release_dongle(t_dongle *dongle)
 {
+  pthread_mutex_lock(&dongle->mutex);
 	dongle->owner = -1;
 	dongle->released = get_time_ms();
+  pthread_mutex_unlock(&dongle->mutex);
 }
 
 void	*coder_rotine(void *args)
@@ -73,8 +79,11 @@ void	*coder_rotine(void *args)
 	t_coder	*coder;
 
 	coder = (t_coder *)args;
-	take_dongle(coder->left, coder, coder->start_time);
-	take_dongle(coder->right, coder, coder->start_time);
+  while(coder->left->owner != coder->id)
+	  take_dongle(coder->left, coder, coder->start_time);
+
+  while(coder->right->owner != coder->id)
+	  take_dongle(coder->right, coder, coder->start_time);
 	if (coder->left->owner == coder->id && coder->right->owner == coder->id)
 	{
 		loging(coder->id, coder->start_time, "is compiling");
@@ -118,9 +127,14 @@ int main()
 		return (-1);
 	if (pthread_join(coder->thread, NULL) != 0)
 		return (-1);
-	
 	if (pthread_join((coder + 1)->thread, NULL) != 0)
+  {
 		return (-1);
+  }
+  pthread_mutex_destroy(&dongle[0].mutex);
+  pthread_mutex_destroy(&dongle[1].mutex);
+  free(dongle);
+  free(coder);
 	return (0);
 };
 
