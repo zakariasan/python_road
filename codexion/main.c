@@ -6,18 +6,18 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/03/14 13:07:23 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/03/30 10:01:56 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-int ft_codexion(t_hub **hub)
+int ft_codexion(t_hub *hub)
 {
 	t_coder 	*coder;
 	t_dongle 	*dongle;
 
-  printf("t_hub--->%d", (*hub)->num_coders);
+  	printf("t_hub--->%d", hub->num_coders);
 	dongle = malloc(sizeof(t_dongle) * 2);
 	coder = malloc(sizeof(t_coder) * 2);
 	if (!coder || !dongle)
@@ -54,9 +54,8 @@ int ft_codexion(t_hub **hub)
 
 int main(int ac, char **av)
 {
-  t_hub *hub;
+  t_hub hub;
 
-  hub = NULL;
   if (ft_parser(ac, av, &hub) != 0)
     return (-1);
   ft_codexion(&hub);

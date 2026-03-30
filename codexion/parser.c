@@ -1,26 +1,24 @@
 #include "codexion.h"
 
 
-void  ft_get_values(char **av, t_hub **hub)
+void  ft_get_values(char **av, t_hub *hub)
 {
-  (*hub)->num_coders = atoi(av[1]);
-  (*hub)->time_to_burnout = atoi(av[2]);
-  (*hub)->time_to_compile = atoi(av[3]);
-  (*hub)->time_to_debug = atoi(av[4]);
-  (*hub)->time_to_refactor = atoi(av[5]);
-  (*hub)->compiles_required = atoi(av[6]);
-  (*hub)->dongle_cooldown = atoi(av[7]);
-  (*hub)->scheduler = av[8];
+	hub->num_coders = atoi(av[1]);
+	hub->time_to_burnout = atoi(av[2]);
+	hub->time_to_compile = atoi(av[3]);
+	hub->time_to_debug = atoi(av[4]);
+	hub->time_to_refactor = atoi(av[5]);
+	hub->compiles_required = atoi(av[6]);
+	hub->dongle_cooldown = atoi(av[7]);
+	hub->scheduler = av[8];
 }
 
-int ft_parser(int ac, char **av, t_hub **hub)
+int ft_parser(int ac, char **av, t_hub *hub)
 {
   int i;
   int item;
-  t_hub *but;
 
   i = 1;
-  but = *hub;
   if (ac != 9)
   {
     fprintf(stderr, "Usage: ./codexion num_coders time_to_burnout "
@@ -43,6 +41,6 @@ int ft_parser(int ac, char **av, t_hub **hub)
     fprintf(stderr, "Error: scheduler must be 'fifo' or 'edf'\n");
     return (-1);
   }
-  ft_get_values(av, &but);
+  ft_get_values(av, hub);
   return (0);
 }

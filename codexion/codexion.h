@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/03/12 03:28:00 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/03/30 10:01:18 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,6 @@ void init_coder(t_coder *coder,int id, long compile, long debug, long refactor);
 void	*coder_rotine(void *args);
 
 
-int ft_parser(int ac, char **av, t_hub **hub);
+int ft_parser(int ac, char **av, t_hub *hub);
 
 #endif
