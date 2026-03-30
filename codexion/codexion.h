@@ -17,6 +17,9 @@
 # include <stdio.h>
 # include <pthread.h>
 # include <stdlib.h>
+# include <sys/time.h>
+# include <stdlib.h>
+# include <string.h>
 
 typedef struct s_dongle
 {
@@ -44,5 +47,34 @@ enum e_scheduler
 	fifo,
 	edf
 };
+
+typedef struct    s_hub
+{
+  t_coder         *coders;
+  t_dongle        *dongles;
+  int             num_coders;
+  long            time_to_burnout;
+  long            time_to_compile;
+  long            time_to_debug;
+  long            time_to_refactor;
+  int             compiles_required;
+  long            dongle_cooldown;
+  char*             scheduler;
+  int             simulation_over;
+  pthread_mutex_t print_mutex;
+  long long       start_time;
+}                 t_hub;
+
+long long	get_time_ms(void);
+void	loging(int coder_id, long long start_time, char *action);
+void init_dongle(t_dongle *dongle, int id, long cooldown, int owner);
+void take_dongle(t_dongle *dongle, t_coder *coder, long long time);
+void	release_dongle(t_dongle *dongle);
+void init_coder(t_coder *coder,int id, long compile, long debug, long refactor);
+
+void	*coder_rotine(void *args);
+
+
+int ft_parser(int ac, char **av, t_hub **hub);
 
 #endif

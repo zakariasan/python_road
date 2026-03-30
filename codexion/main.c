@@ -11,99 +11,13 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <pthread.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/time.h>
 
-void init_coder(t_coder *coder,int id, long compile, long debug, long refactor)
-{
-	coder->time_to_compile = compile;
-	coder->time_to_debug = debug;
-	coder->time_to_refactor = refactor;
-	coder->id = id;
-	coder->right = NULL;
-	coder->left = NULL;
-}
-
-void init_dongle(t_dongle *dongle, int id, long cooldown, int owner)
-{
-	dongle->id = id;
-	dongle->d_cooldown = cooldown;
-	dongle->owner = owner;
-  pthread_mutex_init(&dongle->mutex, NULL);
-}
-
-long long	get_time_ms(void)
-{
-	struct timeval	tv;
-
-	gettimeofday(&tv, NULL);
-	return (long long)((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-}
-
-void	loging(int coder_id, long long start_time, char *action)
-{
-	long long	now;
- 
-	now = get_time_ms() - start_time;
-	printf("%lld %d %s\n", now, coder_id, action);
-}
-
-void take_dongle(t_dongle *dongle, t_coder *coder, long long time)
-{
-	long long	time_used;
-
-  pthread_mutex_lock(&dongle->mutex);
-	time_used = get_time_ms() - dongle->released;
-	if (dongle->owner == -1 && time_used >= dongle->d_cooldown)
-	{
-		dongle->owner = coder->id;
-    pthread_mutex_unlock(&dongle->mutex);
-		loging(coder->id, time, "has taken a dongle");
-		return;
-	}
-  pthread_mutex_unlock(&dongle->mutex);
-}
-
-void	release_dongle(t_dongle *dongle)
-{
-  pthread_mutex_lock(&dongle->mutex);
-	dongle->owner = -1;
-	dongle->released = get_time_ms();
-  pthread_mutex_unlock(&dongle->mutex);
-}
-
-void	*coder_rotine(void *args)
-{
-	t_coder	*coder;
-
-	coder = (t_coder *)args;
-  while(coder->left->owner != coder->id)
-	  take_dongle(coder->left, coder, coder->start_time);
-
-  while(coder->right->owner != coder->id)
-	  take_dongle(coder->right, coder, coder->start_time);
-	if (coder->left->owner == coder->id && coder->right->owner == coder->id)
-	{
-		loging(coder->id, coder->start_time, "is compiling");
-		usleep(coder->time_to_compile * 1000);
-		release_dongle(coder->left);
-		release_dongle(coder->right);
-		loging(coder->id, coder->start_time, "is debugging");
-		usleep(coder->time_to_debug * 1000);
-		loging(coder->id, coder->start_time, "is refactoring");
-		usleep(coder->time_to_refactor * 1000);
-		
-	}
-	return (NULL);
-}
-
-int main()
+int ft_codexion(t_hub **hub)
 {
 	t_coder 	*coder;
 	t_dongle 	*dongle;
 
+  printf("t_hub--->%d", (*hub)->num_coders);
 	dongle = malloc(sizeof(t_dongle) * 2);
 	coder = malloc(sizeof(t_coder) * 2);
 	if (!coder || !dongle)
@@ -138,3 +52,13 @@ int main()
 	return (0);
 };
 
+int main(int ac, char **av)
+{
+  t_hub *hub;
+
+  hub = NULL;
+  if (ft_parser(ac, av, &hub) != 0)
+    return (-1);
+  ft_codexion(&hub);
+  return (0);
+}
