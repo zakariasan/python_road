@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/03/30 10:01:56 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/01 19:30:33 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,12 @@ int ft_codexion(t_hub *hub)
 	t_coder 	*coder;
 	t_dongle 	*dongle;
 
-  	printf("t_hub--->%d", hub->num_coders);
 	dongle = malloc(sizeof(t_dongle) * 2);
 	coder = malloc(sizeof(t_coder) * 2);
 	if (!coder || !dongle)
 		return (-1);
+	hub->coders = coder;
+	hub->dongles = dongle;
 	init_coder(coder, 1, 200, 200, 200);
 	init_coder(coder + 1, 2, 200, 200, 200);
 	init_dongle(dongle, 1, 200, -1);
