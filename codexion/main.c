@@ -6,50 +6,55 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/01 19:30:33 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/02 22:33:37 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include <pthread.h>
 
 int ft_codexion(t_hub *hub)
 {
 	t_coder 	*coder;
 	t_dongle 	*dongle;
+	int			i;
 
-	dongle = malloc(sizeof(t_dongle) * 2);
-	coder = malloc(sizeof(t_coder) * 2);
+	i = 0;
+	dongle = malloc(sizeof(t_dongle) * hub->num_coders);
+	coder = malloc(sizeof(t_coder) * hub->num_coders);
 	if (!coder || !dongle)
 		return (-1);
-	hub->coders = coder;
-	hub->dongles = dongle;
-	init_coder(coder, 1, 200, 200, 200);
-	init_coder(coder + 1, 2, 200, 200, 200);
-	init_dongle(dongle, 1, 200, -1);
-	init_dongle(dongle + 1, 1, 200, -1);
-	coder[0].right = dongle;
-	coder[0].left = dongle + 1;
-	
-	coder[1].right = dongle;
-	coder[1].left = dongle + 1;
-
-	coder->start_time = get_time_ms();
-	(coder + 1)->start_time = get_time_ms();
-
-	if (pthread_create(&coder->thread, NULL, coder_rotine, coder) != 0)
-		return (-1);
-	if (pthread_create(&(coder + 1)->thread, NULL, coder_rotine, coder + 1) != 0)
-		return (-1);
-	if (pthread_join(coder->thread, NULL) != 0)
-		return (-1);
-	if (pthread_join((coder + 1)->thread, NULL) != 0)
-  {
-		return (-1);
-  }
-  pthread_mutex_destroy(&dongle[0].mutex);
-  pthread_mutex_destroy(&dongle[1].mutex);
-  free(dongle);
-  free(coder);
+	while (i < hub->num_coders)
+	{
+		init_coder(&coder[i], i + 1,
+				hub->time_to_compile,
+				hub->time_to_debug,
+				hub->time_to_refactor);
+		init_dongle(&dongle[i], i + 1,
+				hub->dongle_cooldown, -1);
+		i++;
+	}
+	while (--i >= 0)
+	{
+		coder[i].right = &dongle[i];
+		coder[i].left = &dongle[(i + 1) % hub->num_coders];
+	}
+	while (++i < hub->num_coders)
+	{
+		if (pthread_create(&(coder + i)->thread, NULL, coder_rotine, &coder[i]) != 0)
+			return (-1);
+	}
+	while (--i >= 0)
+	{
+		if (pthread_join(coder->thread, NULL) != 0)
+			return (-1);
+	}
+	while (++i < hub->num_coders)
+	{
+		pthread_mutex_destroy(&dongle[i].mutex);
+	}
+	free(dongle);
+	free(coder);
 	return (0);
 };
 

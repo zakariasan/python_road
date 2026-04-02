@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/03/30 10:01:18 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/02 19:37:47 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,18 +30,6 @@ typedef struct s_dongle
 	int			owner;
 }				t_dongle;
 
-typedef struct s_coder
-{
-	long long	start_time;
-	pthread_t	thread;
-	t_dongle	*right;
-	t_dongle	*left;
-	long		time_to_compile;
-	long		time_to_debug;
-	long		time_to_refactor;
-	int			id;
-}				t_coder;
-
 enum e_scheduler
 {
 	fifo,
@@ -50,20 +38,34 @@ enum e_scheduler
 
 typedef struct    s_hub
 {
-  t_coder         *coders;
-  t_dongle        *dongles;
-  int             num_coders;
-  long            time_to_burnout;
-  long            time_to_compile;
-  long            time_to_debug;
-  long            time_to_refactor;
-  int             compiles_required;
-  long            dongle_cooldown;
-  char*             scheduler;
-  int             simulation_over;
-  pthread_mutex_t print_mutex;
-  long long       start_time;
+	int					num_coders;
+	int					time_to_burnout;
+	int					time_to_compile;
+	int					time_to_debug;
+	int					time_to_refactor;
+	int					compiles_required;
+	int					dongle_cooldown;
+	char*				scheduler;
+	int					sim_over;
+	pthread_mutex_t		print;
+	long long			start_time;
 }                 t_hub;
+
+typedef struct s_coder
+{
+	long long	start_time;
+	long long	last_compile;
+	t_hub		hub;
+	int		cnt_compile;
+	pthread_t	thread;
+	t_dongle	*right;
+	t_dongle	*left;
+	int			time_to_compile;
+	int			time_to_debug;
+	int			time_to_refactor;
+	int			id;
+}				t_coder;
+
 
 long long	get_time_ms(void);
 void	loging(int coder_id, long long start_time, char *action);

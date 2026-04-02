@@ -15,11 +15,14 @@ void	*coder_rotine(void *args)
 	t_coder	*coder;
 
 	coder = (t_coder *)args;
-  while(coder->left->owner != coder->id)
-	  take_dongle(coder->left, coder, coder->start_time);
+	
+	coder->start_time = get_time_ms();
+	while(coder->left->owner != coder->id)
+		take_dongle(coder->left, coder, coder->start_time);
 
-  while(coder->right->owner != coder->id)
-	  take_dongle(coder->right, coder, coder->start_time);
+	while(coder->right->owner != coder->id)
+		take_dongle(coder->right, coder, coder->start_time);
+
 	if (coder->left->owner == coder->id && coder->right->owner == coder->id)
 	{
 		loging(coder->id, coder->start_time, "is compiling");
@@ -30,7 +33,7 @@ void	*coder_rotine(void *args)
 		usleep(coder->time_to_debug * 1000);
 		loging(coder->id, coder->start_time, "is refactoring");
 		usleep(coder->time_to_refactor * 1000);
-		
+
 	}
 	return (NULL);
 }
