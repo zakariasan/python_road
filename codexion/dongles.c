@@ -24,6 +24,33 @@ void take_dongle(t_dongle *dongle, t_coder *coder, long long time)
 	pthread_mutex_unlock(&dongle->mutex);
 }
 
+int take_dongles(t_dongle *left, t_dongle *right, t_coder *coder, long long time)
+{
+	long long	now;
+
+	now = get_time_ms();
+	pthread_mutex_lock(&left->mutex);
+	if (left->owner != -1 || now - left->released < left->d_cooldown)
+	{
+		pthread_mutex_unlock(&left->mutex);
+		return (0);
+	}
+	pthread_mutex_lock(&right->mutex);
+	if (right->owner != -1 || now - right->released < right->d_cooldown)
+	{
+		pthread_mutex_unlock(&left->mutex);
+		pthread_mutex_unlock(&right->mutex);
+		return (0);
+	}
+	left->owner = coder->id;
+	right->owner = coder->id;
+	pthread_mutex_unlock(&left->mutex);
+	pthread_mutex_unlock(&right->mutex);
+	loging(coder->id, time, "has taken a dongle");
+	loging(coder->id, time, "has taken a dongle");
+	return(1);
+}
+
 void	release_dongle(t_dongle *dongle)
 {
 	pthread_mutex_lock(&dongle->mutex);

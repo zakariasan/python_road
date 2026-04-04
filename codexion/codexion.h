@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/02 19:37:47 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/04 01:13:13 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ typedef struct    s_hub
 	int					compiles_required;
 	int					dongle_cooldown;
 	char*				scheduler;
-	int					sim_over;
+	int					over;
 	pthread_mutex_t		print;
 	long long			start_time;
 }                 t_hub;
@@ -55,8 +55,8 @@ typedef struct s_coder
 {
 	long long	start_time;
 	long long	last_compile;
-	t_hub		hub;
-	int		cnt_compile;
+	t_hub		*hub;
+	int			counter;
 	pthread_t	thread;
 	t_dongle	*right;
 	t_dongle	*left;
@@ -66,16 +66,24 @@ typedef struct s_coder
 	int			id;
 }				t_coder;
 
+typedef	struct s_var
+{
+	pthread_t	thread;
+	t_coder		*coders;
+	t_hub		*hub;
+}				t_var;
 
 long long	get_time_ms(void);
 void	loging(int coder_id, long long start_time, char *action);
 void init_dongle(t_dongle *dongle, int id, long cooldown, int owner);
 void take_dongle(t_dongle *dongle, t_coder *coder, long long time);
+int take_dongles(t_dongle *left, t_dongle *right, t_coder *coder, long long time);
 void	release_dongle(t_dongle *dongle);
 void init_coder(t_coder *coder,int id, long compile, long debug, long refactor);
 
 void	*coder_rotine(void *args);
 
+void	*var_rotine(void *args);
 
 int ft_parser(int ac, char **av, t_hub *hub);
 

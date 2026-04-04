@@ -29,7 +29,7 @@ int ft_parser(int ac, char **av, t_hub *hub)
   while (i < ac - 1)
   {
     item = atoi(av[i]);
-    if (item <= 0)
+    if (item < 0)
     {
       fprintf(stderr, "Error: invalid argument [%s]\n", av[i]);
       return (-1);
