@@ -42,8 +42,8 @@ int ft_codexion(t_hub *hub)
 	while (i < hub->num_coders)
 	{
 		coder[i].hub = hub;
-		coder[i].start_time = coder->hub->start_time;
-		coder[i].last_compile = coder->hub->start_time;
+		coder[i].start_time = coder[i].hub->start_time;
+		coder[i].last_compile = coder[i].hub->start_time;
 		coder[i].right = &dongle[i];
 		coder[i].left = &dongle[(i + 1) % hub->num_coders];
 		i++;
@@ -60,14 +60,15 @@ int ft_codexion(t_hub *hub)
 		i++;
 	}
 	i = 0;
+  if (pthread_join(var->thread, NULL) != 0)
+		return (-1);
 	while (i < hub->num_coders)
 	{
 		if (pthread_join(coder[i].thread, NULL) != 0)
 			return (-1);
 		i++;
 	}
-	if (pthread_join(var->thread, NULL) != 0)
-		return (-1);
+	
 	i = 0;
 	while (i < hub->num_coders)
 	{

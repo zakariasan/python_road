@@ -30,13 +30,13 @@ int take_dongles(t_dongle *left, t_dongle *right, t_coder *coder, long long time
 
 	now = get_time_ms();
 	pthread_mutex_lock(&left->mutex);
-	if (left->owner != -1 || now - left->released < left->d_cooldown)
+	if (left->owner != -1 || now - left->released < left->d_cooldown || coder->hub->over)
 	{
 		pthread_mutex_unlock(&left->mutex);
 		return (0);
 	}
 	pthread_mutex_lock(&right->mutex);
-	if (right->owner != -1 || now - right->released < right->d_cooldown)
+	if (right->owner != -1 || now - right->released < right->d_cooldown || coder->hub->over)
 	{
 		pthread_mutex_unlock(&left->mutex);
 		pthread_mutex_unlock(&right->mutex);

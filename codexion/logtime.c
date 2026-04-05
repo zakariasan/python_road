@@ -13,5 +13,7 @@ void	loging(int coder_id, long long start_time, char *action)
 	long long	now;
  
 	now = get_time_ms() - start_time;
+	//pthread_mutex_lock(&hub->print);
 	printf("%lld %d %s\n", now, coder_id, action);
+	//pthread_mutex_unlock(&hub->print);
 }
