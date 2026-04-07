@@ -156,7 +156,7 @@ def generate_maze(stdscr, grid, width, height):
 
             # Draw and animate
             draw_grid(stdscr, grid, width, height)
-            time.sleep(1)
+            time.sleep(0.9)
         else:
             # No unvisited neighbors - backtrack by popping from stack
             current = stack.pop()
