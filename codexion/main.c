@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/04 01:21:28 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/06 23:05:33 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ int ft_codexion(t_hub *hub)
 	while (i < hub->num_coders)
 	{
 		pthread_mutex_destroy(&dongle[i].mutex);
+		pthread_cond_destroy(&dongle[i].cond);
 		i++;
 	}
 	free(dongle);

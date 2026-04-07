@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/04 01:13:13 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/06 23:04:37 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@
 
 typedef struct s_dongle
 {
-  pthread_mutex_t mutex;
+	pthread_mutex_t mutex;
+	pthread_cond_t	cond;
 	long long	released;
 	long		d_cooldown;
 	int			id;
