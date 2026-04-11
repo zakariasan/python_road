@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/06 23:05:33 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/11 01:49:06 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,21 +24,18 @@ int ft_codexion(t_hub *hub)
 	dongle = malloc(sizeof(t_dongle) * hub->num_coders);
 	coder = malloc(sizeof(t_coder) * hub->num_coders);
 	var = malloc(sizeof(t_var));
+	hub->start_time = get_time_ms();
 	if (!coder || !dongle)
 		return (-1);
-	hub->over = 0;
+	
 	while (i < hub->num_coders)
 	{
-		init_coder(&coder[i], i + 1,
-				hub->time_to_compile,
-				hub->time_to_debug,
-				hub->time_to_refactor);
+		init_coder(&coder[i], i + 1, hub);
 		init_dongle(&dongle[i], i + 1,
 				hub->dongle_cooldown, -1);
 		i++;
 	}
 	i = 0;
-	hub->start_time = get_time_ms();
 	while (i < hub->num_coders)
 	{
 		coder[i].hub = hub;
@@ -49,12 +46,15 @@ int ft_codexion(t_hub *hub)
 		i++;
 	}
 	i = 0;
+	pthread_mutex_init(&hub->print, NULL);
+	hub->over = 0;
 	var->coders = coder;
 	var->hub = hub;
 	if (pthread_create(&var->thread, NULL, var_rotine, var) != 0)
 			return (-1);
 	while (i < hub->num_coders)
 	{
+		coder[i].last_compile = get_time_ms();
 		if (pthread_create(&(coder + i)->thread, NULL, coder_rotine, &coder[i]) != 0)
 			return (-1);
 		i++;
@@ -78,6 +78,7 @@ int ft_codexion(t_hub *hub)
 	}
 	free(dongle);
 	free(coder);
+	free(var);
 	return (0);
 };
 

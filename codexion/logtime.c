@@ -1,4 +1,6 @@
 #include "codexion.h"
+#include <pthread.h>
+#include <stdio.h>
 
 long long	get_time_ms(void)
 {
@@ -8,12 +10,12 @@ long long	get_time_ms(void)
 	return (long long)((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
 
-void	loging(int coder_id, long long start_time, char *action)
+void	loging(t_coder *coder, char *action)
 {
-	long long	now;
- 
-	now = get_time_ms() - start_time;
-	//pthread_mutex_lock(&hub->print);
-	printf("%lld %d %s\n", now, coder_id, action);
-	//pthread_mutex_unlock(&hub->print);
+	pthread_mutex_lock(&coder->hub->print);
+	if (!coder->hub->over)
+	{
+	printf("%lld %d %s\n", get_time_ms() - coder->hub->start_time, coder->id, action);
+	}
+	pthread_mutex_unlock(&coder->hub->print);
 }

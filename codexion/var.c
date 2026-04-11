@@ -16,9 +16,9 @@ void	*var_rotine(void *args)
 		{
 			if (now - var->coders[i].last_compile > var->hub->time_to_burnout)
 			{
-				pthread_mutex_lock(&var->hub->print);
-				loging(var->coders[i].id, var->hub->start_time, "burned out");
-				pthread_mutex_unlock(&var->hub->print);
+				//pthread_mutex_lock(&var->hub->print);
+				loging(&var->coders[i], "burned out");
+				//pthread_mutex_unlock(&var->hub->print);
 				var->hub->over = 1;
 				i = 0;
 				while (i < var->hub->num_coders)

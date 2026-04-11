@@ -1,15 +1,17 @@
 #include "codexion.h"
+#include <pthread.h>
 
-void init_coder(t_coder *coder,int id, long compile, long debug, long refactor)
+void init_coder(t_coder *coder,int id, t_hub *hub)
 {
-	coder->time_to_compile = compile;
-	coder->time_to_debug = debug;
-	coder->time_to_refactor = refactor;
+	coder->time_to_compile = hub->time_to_compile;
+	coder->time_to_debug = hub->time_to_debug;
+	coder->time_to_refactor = hub->time_to_refactor;
 	coder->id = id;
 	coder->counter = 0;
 	coder->right = NULL;
 	coder->left = NULL;
 }
+
 
 void	*coder_rotine(void *args)
 {
@@ -21,17 +23,17 @@ void	*coder_rotine(void *args)
 	{
 		if (coder->hub->over)
 			return (NULL);
-		if(take_dongles(coder->left, coder->right, coder, coder->start_time) == 0)
+		if(take_dongles(coder->left, coder->right, coder) == 0)
 			return (NULL);
 		
 		coder->last_compile = get_time_ms();
-		loging(coder->id, coder->start_time, "is compiling");
+		loging(coder, "is compiling");
 		usleep(coder->time_to_compile * 1000);
 		release_dongle(coder->left);
 		release_dongle(coder->right);
-		loging(coder->id, coder->start_time, "is debugging");
+		loging(coder, "is debugging");
 		usleep(coder->time_to_debug * 1000);
-		loging(coder->id, coder->start_time, "is refactoring");
+		loging(coder, "is refactoring");
 		usleep(coder->time_to_refactor * 1000);
 		coder->counter++;
 	}
