@@ -1,29 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   init.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/13 22:08:06 by zhaouzan         ###   ########.fr       */
+/*   Created: 2026/04/13 22:06:34 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/04/13 22:10:57 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-int ft_codexion(t_hub *hub)
+int ft_init_hub(t_hub *hub)
 {
 	t_coder 	*coder;
 	t_dongle 	*dongle;
-	//t_var		*var;
 	int			i;
 
 	i = 0;
 	dongle = malloc(sizeof(t_dongle) * hub->num_coders);
 	coder = malloc(sizeof(t_coder) * hub->num_coders);
-	//var = malloc(sizeof(t_var));
-	hub->start_time = get_time_ms();
 	if (!coder || !dongle)
 		return (-1);
 	
@@ -81,17 +78,3 @@ int ft_codexion(t_hub *hub)
 	return (0);
 };
 
-int main(int ac, char **av)
-{
-  t_hub hub;
-
-  if (ft_parser(ac, av, &hub) != 0)
-    return (-1);
-  if (ft_init_hub(&hub) != 0)
-	  return(EXIT_FAILURE);
-  // start simulation
-  //ft_codexion(&hub);
-
-  //free the word
-  return (0);
-}

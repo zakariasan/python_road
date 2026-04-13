@@ -6,11 +6,12 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:38:01 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/13 22:08:06 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/11 19:01:40 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include <pthread.h>
 
 int ft_codexion(t_hub *hub)
 {
@@ -87,11 +88,6 @@ int main(int ac, char **av)
 
   if (ft_parser(ac, av, &hub) != 0)
     return (-1);
-  if (ft_init_hub(&hub) != 0)
-	  return(EXIT_FAILURE);
-  // start simulation
-  //ft_codexion(&hub);
-
-  //free the word
+  ft_codexion(&hub);
   return (0);
 }
