@@ -21,28 +21,32 @@
 # include <stdlib.h>
 # include <string.h>
 
+typedef enum e_scheduler
+{
+	FIFO,
+	EDF
+}			t_scheduler;
+
 typedef struct s_dongle
 {
 	pthread_mutex_t	mutex;
-	pthread_cond_t	cond;
-	long long		released;
-	long			d_cooldown;
+	//pthread_cond_t	cond;
+	long 			released;
+	int				cooldown;
 	int				id;
 	int				owner;
+	t_scheduler		scheduler;
 }					t_dongle;
 
-enum e_scheduler
-{
-	fifo,
-	edf
-};
 
 typedef struct s_hub
 {
-	pthread_mutex_t	print;
-	long long		start_time;
-	char*			scheduler;
+	pthread_mutex_t	print_mutex;
+	pthread_mutex_t	over_mutex;
+	long			start_time;
+	t_scheduler		scheduler;
 	int				num_coders;
+
 	int				time_to_burnout;
 	int				time_to_compile;
 	int				time_to_debug;
@@ -50,21 +54,16 @@ typedef struct s_hub
 	int				compiles_required;
 	int				dongle_cooldown;
 	int				over;
-	struct s_manager  *manager;
 }				t_hub;
 
 typedef struct s_coder
 {
-	long long	start_time;
-	long long	last_compile;
+	long		last_compile;
 	t_hub		*hub;
 	int			counter;
 	pthread_t	thread;
 	t_dongle	*right;
 	t_dongle	*left;
-	int			time_to_compile;
-	int			time_to_debug;
-	int			time_to_refactor;
 	int			id;
 }				t_coder;
 

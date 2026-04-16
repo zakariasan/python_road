@@ -55,26 +55,10 @@ int ft_init_hub(t_hub *hub)
 			return (-1);
 		i++;
 	}
-	i = 0;
+//	i = 0;
   //if (pthread_join(var->thread, NULL) != 0)
 	//	return (-1);
-	while (i < hub->num_coders)
-	{
-		if (pthread_join(coder[i].thread, NULL) != 0)
-			return (-1);
-		i++;
-	}
 	
-	i = 0;
-	while (i < hub->num_coders)
-	{
-		pthread_mutex_destroy(&dongle[i].mutex);
-		pthread_cond_destroy(&dongle[i].cond);
-		i++;
-	}
-	free(dongle);
-	free(coder);
-	//free(var);
 	return (0);
 };
 

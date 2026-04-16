@@ -1,5 +1,4 @@
 #include "codexion.h"
-#include <pthread.h>
 
 void init_coder(t_coder *coder,int id, t_hub *hub)
 {
