@@ -12,10 +12,10 @@ long long	get_time_ms(void)
 
 void	loging(t_coder *coder, char *action)
 {
-	pthread_mutex_lock(&coder->hub->print);
-	if (!coder->hub->over)
+	pthread_mutex_lock(&coder->hub->print_mutex);
+	if (!is_over(coder->hub))
 	{
 	printf("%lld %d %s\n", get_time_ms() - coder->hub->start_time, coder->id, action);
 	}
-	pthread_mutex_unlock(&coder->hub->print);
+	pthread_mutex_unlock(&coder->hub->print_mutex);
 }

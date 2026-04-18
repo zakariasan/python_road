@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include <pthread.h>
 
 int ft_init_hub(t_hub *hub)
 {
@@ -23,7 +24,9 @@ int ft_init_hub(t_hub *hub)
 	coder = malloc(sizeof(t_coder) * hub->num_coders);
 	if (!coder || !dongle)
 		return (-1);
-	
+	hub->dongles = dongle;
+	hub->coders = coder;
+	hub->start_time = get_time_ms();
 	while (i < hub->num_coders)
 	{
 		init_coder(&coder[i], i + 1, hub);
@@ -34,31 +37,14 @@ int ft_init_hub(t_hub *hub)
 	i = 0;
 	while (i < hub->num_coders)
 	{
-		coder[i].hub = hub;
-		coder[i].start_time = coder[i].hub->start_time;
-		coder[i].last_compile = coder[i].hub->start_time;
+		coder[i].last_compile = hub->start_time;
 		coder[i].right = &dongle[i];
 		coder[i].left = &dongle[(i + 1) % hub->num_coders];
 		i++;
 	}
-	i = 0;
-	pthread_mutex_init(&hub->print, NULL);
 	hub->over = 0;
-	//var->coders = coder;
-	//var->hub = hub;
-	//if (pthread_create(&var->thread, NULL, var_rotine, var) != 0)
-	//		return (-1);
-	while (i < hub->num_coders)
-	{
-		coder[i].last_compile = get_time_ms();
-		if (pthread_create(&(coder + i)->thread, NULL, coder_rotine, &coder[i]) != 0)
-			return (-1);
-		i++;
-	}
-//	i = 0;
-  //if (pthread_join(var->thread, NULL) != 0)
-	//	return (-1);
-	
+	pthread_mutex_init(&hub->over_mutex, NULL);
+	pthread_mutex_init(&hub->print_mutex, NULL);
 	return (0);
 };
 

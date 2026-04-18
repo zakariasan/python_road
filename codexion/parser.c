@@ -21,7 +21,10 @@ void	ft_get_values(char **av, t_hub *hub)
 	hub->time_to_refactor = atoi(av[5]);
 	hub->compiles_required = atoi(av[6]);
 	hub->dongle_cooldown = atoi(av[7]);
-	hub->scheduler = av[8];
+	if (strcmp(av[8], "edf") == 0)
+		hub->scheduler = EDF;
+	else
+		hub->scheduler = FIFO;
 }
 
 int	ft_check_params(int ac, char **av)
@@ -53,9 +56,6 @@ int	ft_check_params(int ac, char **av)
 
 int	ft_parser(int ac, char **av, t_hub *hub)
 {
-	int	i;
-
-	i = 1;
 	if (ac != 9)
 	{
 		fprintf(stderr, "Usage: ./codexion num_coders time_to_burnout \
