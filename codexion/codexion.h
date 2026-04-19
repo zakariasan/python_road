@@ -82,7 +82,7 @@ typedef struct s_hub
 int is_over(t_hub *hub);
 void set_over(t_hub *hub);
 int			ft_init_hub(t_hub *hub);
-long long	get_time_ms(void);
+long		get_time_ms(void);
 void		loging(t_coder *coder, char *action);
 void		init_dongle(t_dongle *dongle, int id, long cooldown, int owner);
 int			take_dongle(t_dongle *dongle, t_coder *coder);

@@ -33,14 +33,18 @@ int ft_codexion(t_hub *hub)
 			return (-1);
 		i++;
 	}
+	if (pthread_join(manager.thread, NULL) != 0)	
+		return (-1);
 	i = 0;
 	while (i < hub->num_coders)
 	{
 		if (pthread_join(coder[i].thread, NULL) != 0)
+		{
+			set_over(hub);
 			return (-1);
+		}
 		i++;
 	}
-	pthread_join(manager.thread, NULL);	
 	i = 0;
 	while (i < hub->num_coders)
 	{

@@ -13,12 +13,16 @@ void init_dongle(t_dongle *dongle, int id, long cooldown, int owner)
 
 int take_dongle(t_dongle *dongle, t_coder *coder)
 {
+	long now;
+
 	pthread_mutex_lock(&dongle->mutex);
-	while ((dongle->owner == -1 ||
-			get_time_ms() - dongle->released < dongle->cooldown) &&
-			!is_over(coder->hub)
-			)
+	while (!is_over(coder->hub))
+	{
+		now = get_time_ms();
+		if (dongle->owner == -1 && now - dongle->released >= dongle->cooldown)
+			break;
 		pthread_cond_wait(&dongle->cond, &dongle->mutex);
+	}
 	if(is_over(coder->hub))
 	{
 		pthread_mutex_unlock(&dongle->mutex);

@@ -22,11 +22,27 @@ void	*manager_rotine(void *args)
 {
 	t_manager	*manager;
 	int		i;
+	int		w_done;
 
 	manager = (t_manager *)args;
 	while (!is_over(manager->hub))
 	{
 		i = 0;
+		w_done = 1;
+		while (i < manager->hub->num_coders)
+		{
+			if (manager->coders[i].counter < manager->hub->compiles_required)
+				w_done = 0;
+			i++;
+		}
+		i = 0;
+		if (w_done)
+		{
+			set_over(manager->hub);
+			while (i < manager->hub->num_coders)
+				pthread_cond_broadcast(&manager->hub->dongles[i++].cond);
+			return (NULL);
+		}
 		while (i < manager->hub->num_coders)
 		{
 			if (get_time_ms() - manager->coders[i].last_compile > manager->hub->time_to_burnout)
@@ -35,11 +51,7 @@ void	*manager_rotine(void *args)
 				set_over(manager->hub);
 				i = 0;
 				while (i < manager->hub->num_coders)
-				{
-					pthread_cond_broadcast(&manager->coders[i].left->cond);
-					pthread_cond_broadcast(&manager->coders[i].right->cond);
-					i++;
-				}
+					pthread_cond_broadcast(&manager->hub->dongles[i++].cond);
 				return (NULL);
 			}	
 			i++;
