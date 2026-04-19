@@ -1,7 +1,18 @@
-#include "codexion.h"
-#include <unistd.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   coders.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/19 13:20:30 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/04/19 13:24:41 by zhaouzan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-void init_coder(t_coder *coder,int id, t_hub *hub)
+#include "codexion.h"
+
+void	init_coder(t_coder *coder, int id, t_hub *hub)
 {
 	coder->id = id;
 	coder->counter = 0;
@@ -9,7 +20,7 @@ void init_coder(t_coder *coder,int id, t_hub *hub)
 	coder->left = NULL;
 	coder->hub = hub;
 	coder->last_compile = hub->start_time;
-	coder->right =  &hub->dongles[id - 1];
+	coder->right = &hub->dongles[id - 1];
 	coder->left = &hub->dongles[(id) % hub->num_coders];
 }
 
@@ -18,32 +29,29 @@ void	*coder_rotine(void *args)
 	t_coder	*coder;
 
 	coder = (t_coder *)args;
-	
-
-	while(!is_over(coder->hub) && coder->counter < coder->hub->compiles_required)
+	while (!is_over(coder->hub)
+		&& coder->counter < coder->hub->compiles_required)
 	{
 		if (coder->id % 2 == 0)
 		{
 			if (!take_dongle(coder->left, coder))
-				break;
-			if (!take_dongle(coder->right, coder))	
+				break ;
+			if (!take_dongle(coder->right, coder))
 			{
 				release_dongle(coder->left);
-				break;		
+				break ;
 			}
 		}
 		else
 		{
-			if (!take_dongle(coder->right, coder))	
-				break;
+			if (!take_dongle(coder->right, coder))
+				break ;
 			if (!take_dongle(coder->left, coder))
 			{
 				release_dongle(coder->right);
-				break;
+				break ;
 			}
-
 		}
-		
 		loging(coder, "is compiling");
 		usleep(coder->hub->time_to_compile * 1000);
 		release_dongle(coder->left);

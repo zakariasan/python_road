@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/11 01:57:47 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/19 17:40:40 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,7 @@
 # include <stdlib.h>
 # include <string.h>
 
-
-typedef struct s_hub t_hub;
+typedef struct s_hub	t_hub;
 typedef enum e_scheduler
 {
 	FIFO,
@@ -44,6 +43,7 @@ typedef struct s_dongle
 typedef struct s_coder
 {
 	long		last_compile;
+	long		deadline;
 	int			counter;
 	pthread_t	thread;
 	t_dongle	*right;
@@ -58,6 +58,13 @@ typedef struct s_manager
 	t_coder		*coders;
 	t_hub		*hub;
 }				t_manager;
+
+typedef struct s_waiter
+{
+	pthread_t	thread;
+	t_coder		*coders;
+	t_hub		*hub;
+}				t_waiter;
 
 
 typedef struct s_hub
@@ -78,9 +85,25 @@ typedef struct s_hub
 	int				over;
 }				t_hub;
 
+typedef struct 	s_req
+{
+	t_coder coder;
+	long	time;
+}				t_req;
 
-int is_over(t_hub *hub);
-void set_over(t_hub *hub);
+typedef struct s_server
+{
+	pthread_mutex_t	mutex;
+	pthread_cond_t	list_cond;
+	pthread_cond_t	*coder_bed;
+	t_req			*list;
+	t_hub			*hub;
+	t_coder			*coders;
+}				t_server;
+
+int			ft_over(t_hub *hub, t_manager manager);
+int			is_over(t_hub *hub);
+void		set_over(t_hub *hub);
 int			ft_init_hub(t_hub *hub);
 long		get_time_ms(void);
 void		loging(t_coder *coder, char *action);
@@ -89,9 +112,7 @@ int			take_dongle(t_dongle *dongle, t_coder *coder);
 void		release_dongle(t_dongle *dongle);
 void		init_coder(t_coder *coder, int id, t_hub *hub);
 void		*coder_rotine(void *args);
-//void		*var_rotine(void *args);
-void	*manager_rotine(void *args);
-//int			take_dongles(t_dongle *left, t_dongle *right, t_coder *coder);
+void		*manager_rotine(void *args);
 int			ft_parser(int ac, char **av, t_hub *hub);
 
 #endif

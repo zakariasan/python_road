@@ -6,17 +6,16 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 22:06:34 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/13 22:10:57 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/19 14:27:52 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <pthread.h>
 
-int ft_init_hub(t_hub *hub)
+int	ft_init_hub(t_hub *hub)
 {
-	t_coder 	*coder;
-	t_dongle 	*dongle;
+	t_coder		*coder;
+	t_dongle	*dongle;
 	int			i;
 
 	i = 0;
@@ -30,8 +29,7 @@ int ft_init_hub(t_hub *hub)
 	while (i < hub->num_coders)
 	{
 		init_coder(&coder[i], i + 1, hub);
-		init_dongle(&dongle[i], i + 1,
-				hub->dongle_cooldown, -1);
+		init_dongle(&dongle[i], i + 1, hub->dongle_cooldown, -1);
 		i++;
 	}
 	i = 0;
@@ -47,4 +45,3 @@ int ft_init_hub(t_hub *hub)
 	pthread_mutex_init(&hub->print_mutex, NULL);
 	return (0);
 };
-
