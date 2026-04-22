@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/19 17:40:40 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/23 00:06:37 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ typedef struct s_coder
 	t_dongle	*left;
 	int			id;
 	t_hub		*hub;
+	int			allowed;
 }				t_coder;
 
 typedef struct s_manager
@@ -59,13 +60,20 @@ typedef struct s_manager
 	t_hub		*hub;
 }				t_manager;
 
-typedef struct s_waiter
+typedef struct 	s_req
 {
-	pthread_t	thread;
-	t_coder		*coders;
-	t_hub		*hub;
-}				t_waiter;
+	int		coder_id;
+	long	time;
+}				t_req;
 
+typedef struct s_server
+{
+	pthread_mutex_t	mutex;
+	pthread_cond_t	list_cond;
+	pthread_cond_t	*coder_bed;
+	t_req			*list_heap;
+	t_coder			*coders;
+}				t_server;
 
 typedef struct s_hub
 {
@@ -83,23 +91,10 @@ typedef struct s_hub
 	t_dongle		*dongles;
 	t_coder			*coders;
 	int				over;
+	t_server		*server;
+	t_req			*req;
 }				t_hub;
 
-typedef struct 	s_req
-{
-	t_coder coder;
-	long	time;
-}				t_req;
-
-typedef struct s_server
-{
-	pthread_mutex_t	mutex;
-	pthread_cond_t	list_cond;
-	pthread_cond_t	*coder_bed;
-	t_req			*list;
-	t_hub			*hub;
-	t_coder			*coders;
-}				t_server;
 
 int			ft_over(t_hub *hub, t_manager manager);
 int			is_over(t_hub *hub);
