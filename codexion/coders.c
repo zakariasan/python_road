@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:20:30 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 20:13:33 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 20:46:30 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	init_coder(t_coder *coder, int id, t_hub *hub)
 	coder->counter = 0;
 	coder->right = NULL;
 	coder->left = NULL;
-	coder->deadline = hub->time_to_burnout;
+	coder->deadline = hub->start_time + hub->time_to_burnout;
 	coder->hub = hub;
 	coder->last_compile = hub->start_time;
 	coder->right = &hub->dongles[id - 1];
@@ -50,7 +50,7 @@ void	*coder_rotine(void *args)
 			usleep(coder->hub->time_to_refactor * 1000);
 			usleep(500);
 			coder->counter++;
-			coder->deadline = get_time_ms() + coder->hub->time_to_burnout;
+			coder->deadline = coder->deadline + coder->hub->time_to_burnout;
 		}
 		if (coder->counter >= coder->hub->compiles_required)
 			break;

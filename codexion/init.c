@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 22:06:34 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 20:15:07 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 21:03:07 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,15 +59,18 @@ int	is_possible(t_coder *coder, t_hub *hub)
 	long	now;
 
 	now = get_time_ms();
+	pthread_mutex_lock(&coder->left->mutex);
 	if (coder->left->owner != -1
-			|| coder->right->owner != -1)
-		return (0);
-	if (now - coder->left->released
+			|| now - coder->left->released
 			< hub->dongle_cooldown)
 		return (0);
-	if (now - coder->right->released
+	pthread_mutex_unlock(&coder->left->mutex);
+	pthread_mutex_lock(&coder->right->mutex);
+	if (coder->right->owner != -1 || now - coder->right->released
 			< hub->dongle_cooldown)
 		return (0);
+	pthread_mutex_unlock(&coder->right->mutex);
+
 	return (1);
 }
 
@@ -82,8 +85,15 @@ void	ft_grant_if_possible(t_server *srv, t_hub *hub)
 		coder = ft_get_coder(req->coder_id, hub);
 		if (coder && is_possible(coder, hub) == 1)
 		{
-			coder->right->owner = coder->id;
+			pthread_mutex_lock(&coder->left->mutex);
 			coder->left->owner = coder->id;
+			pthread_mutex_unlock(&coder->left->mutex);
+			if (coder->left != coder->right)
+			{
+				pthread_mutex_lock(&coder->right->mutex);
+				coder->right->owner = coder->id;
+				pthread_mutex_unlock(&coder->right->mutex);
+			}
 			coder->allowed = 1;
 			pthread_cond_broadcast(&srv->list_cond);
 			req = ft_remove(req, srv);
@@ -108,6 +118,8 @@ void	*ft_server_routine(void *args)
 		if (!is_over(hub))
 			ft_grant_if_possible(srv, hub);
 	}
+	pthread_cond_broadcast(&srv->list_cond);
+
 	pthread_mutex_unlock(&srv->mutex);
 	return (NULL);
 }

@@ -6,11 +6,12 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:27:13 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 20:16:26 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 20:51:39 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include <unistd.h>
 
 int	is_over(t_hub *hub)
 {
@@ -74,6 +75,7 @@ void	*manager_rotine(void *args)
 			}
 			i++;
 		}
+		usleep(9000);
 	}
 	return (NULL);
 }
