@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 21:34:44 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/13 21:56:52 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 19:16:00 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,9 +58,9 @@ int	ft_parser(int ac, char **av, t_hub *hub)
 {
 	if (ac != 9)
 	{
-		fprintf(stderr, "Usage: ./codexion num_coders time_to_burnout \
-				time_to_compile time_to_debug time_to_refactor \
-				compiles_required dongle_cooldown scheduler\n");
+		fprintf(stderr, "Usage: ./codexion num_coders time_to_burnout"
+				"time_to_compile time_to_debug time_to_refactor"
+				"compiles_required dongle_cooldown scheduler\n");
 		return (-1);
 	}
 	if (ft_check_params(ac, av) != 0)

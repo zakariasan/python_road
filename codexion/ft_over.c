@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:08:59 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/19 13:12:17 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 18:46:51 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ int	ft_over(t_hub *hub, t_manager manager)
 
 	i = 0;
 	if (pthread_join(manager.thread, NULL) != 0)
+		return (-1);
+	if (pthread_join(hub->server->thread, NULL) != 0)
 		return (-1);
 	i = 0;
 	while (i < hub->num_coders)

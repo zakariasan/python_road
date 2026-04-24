@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include <pthread.h>
 
 int	ft_codexion(t_hub *hub)
 {
@@ -26,6 +27,10 @@ int	ft_codexion(t_hub *hub)
 	manager.hub = hub;
 	if (pthread_create(&manager.thread
 			, NULL, manager_rotine, &manager) != 0)
+		return (-1);
+		
+	printf("server ptr: %p\n", (void *)hub->server);
+	if (pthread_create(&hub->server->thread ,NULL, ft_server_routine, hub) != 0)
 		return (-1);
 	while (i < hub->num_coders)
 	{
@@ -46,6 +51,7 @@ int	main(int ac, char **av)
 		return (-1);
 	if (ft_init_hub(&hub) != 0)
 		return (-1);
-	ft_codexion(&hub);
+	if (ft_codexion(&hub) != 0)
+		return(-1);
 	return (0);
 }

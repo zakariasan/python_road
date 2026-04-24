@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/23 00:06:37 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 20:00:11 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,20 +37,20 @@ typedef struct s_dongle
 	int				id;
 	int				owner;
 	int				is_available;	
-	t_scheduler		scheduler;
 }					t_dongle;
 
 typedef struct s_coder
 {
-	long		last_compile;
-	long		deadline;
-	int			counter;
-	pthread_t	thread;
-	t_dongle	*right;
-	t_dongle	*left;
-	int			id;
-	t_hub		*hub;
-	int			allowed;
+	pthread_mutex_t	coder_mutex;
+	long			last_compile;
+	long			deadline;
+	int				counter;
+	pthread_t		thread;
+	t_dongle		*right;
+	t_dongle		*left;
+	int				id;
+	t_hub			*hub;
+	int				allowed;
 }				t_coder;
 
 typedef struct s_manager
@@ -62,17 +62,22 @@ typedef struct s_manager
 
 typedef struct 	s_req
 {
-	int		coder_id;
-	long	time;
+	int				coder_id;
+	long			deathline;
+	long			time;
+	struct s_req	*next;
 }				t_req;
 
 typedef struct s_server
 {
+	pthread_t		thread;
 	pthread_mutex_t	mutex;
 	pthread_cond_t	list_cond;
 	pthread_cond_t	*coder_bed;
 	t_req			*list_heap;
+	int				heap_size;
 	t_coder			*coders;
+	t_scheduler		scheduler;
 }				t_server;
 
 typedef struct s_hub
@@ -104,10 +109,12 @@ long		get_time_ms(void);
 void		loging(t_coder *coder, char *action);
 void		init_dongle(t_dongle *dongle, int id, long cooldown, int owner);
 int			take_dongle(t_dongle *dongle, t_coder *coder);
-void		release_dongle(t_dongle *dongle);
+void		release_dongle(t_dongle *dongle, t_hub *hub);
 void		init_coder(t_coder *coder, int id, t_hub *hub);
 void		*coder_rotine(void *args);
 void		*manager_rotine(void *args);
 int			ft_parser(int ac, char **av, t_hub *hub);
 
+void	req_compile(t_server *srv, t_coder *coder);
+void	*ft_server_routine(void *args);
 #endif

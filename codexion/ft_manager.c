@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:27:13 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/19 13:33:52 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/24 20:16:26 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,9 @@ void	*manager_rotine(void *args)
 			set_over(manager->hub);
 			while (i < manager->hub->num_coders)
 				pthread_cond_broadcast(&manager->hub->dongles[i++].cond);
+			pthread_mutex_lock(&manager->hub->server->mutex);
+			pthread_cond_broadcast(&manager->hub->server->list_cond);
+			pthread_mutex_unlock(&manager->hub->server->mutex);
 			return (NULL);
 		}
 		while (i < manager->hub->num_coders)
@@ -64,11 +67,13 @@ void	*manager_rotine(void *args)
 				i = 0;
 				while (i < manager->hub->num_coders)
 					pthread_cond_broadcast(&manager->hub->dongles[i++].cond);
+				pthread_mutex_lock(&manager->hub->server->mutex);
+				pthread_cond_broadcast(&manager->hub->server->list_cond);
+				pthread_mutex_unlock(&manager->hub->server->mutex);
 				return (NULL);
 			}
 			i++;
 		}
-		usleep(500);
 	}
 	return (NULL);
 }
