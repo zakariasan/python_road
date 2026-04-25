@@ -30,8 +30,8 @@ typedef enum e_scheduler
 
 typedef struct s_dongle
 {
-	pthread_mutex_t	mutex;
-	pthread_cond_t	cond;
+	//pthread_mutex_t	mutex;
+	//pthread_cond_t	cond;
 	long			released;
 	int				cooldown;
 	int				id;

@@ -51,11 +51,9 @@ void	*manager_rotine(void *args)
 		if (w_done)
 		{
 			set_over(manager->hub);
-			while (i < manager->hub->num_coders)
-				pthread_cond_broadcast(&manager->hub->dongles[i++].cond);
-			pthread_mutex_lock(&manager->hub->server->mutex);
-			pthread_cond_broadcast(&manager->hub->server->list_cond);
-			pthread_mutex_unlock(&manager->hub->server->mutex);
+			//pthread_mutex_lock(&manager->hub->server->mutex);
+			//pthread_cond_broadcast(&manager->hub->server->list_cond);
+			//pthread_mutex_unlock(&manager->hub->server->mutex);
 			return (NULL);
 		}
 		while (i < manager->hub->num_coders)
@@ -66,11 +64,9 @@ void	*manager_rotine(void *args)
 				loging(&manager->coders[i], "burned out");
 				set_over(manager->hub);
 				i = 0;
-				while (i < manager->hub->num_coders)
-					pthread_cond_broadcast(&manager->hub->dongles[i++].cond);
-				pthread_mutex_lock(&manager->hub->server->mutex);
-				pthread_cond_broadcast(&manager->hub->server->list_cond);
-				pthread_mutex_unlock(&manager->hub->server->mutex);
+				//pthread_mutex_lock(&manager->hub->server->mutex);
+			//	pthread_cond_broadcast(&manager->hub->server->list_cond);
+				//pthread_mutex_unlock(&manager->hub->server->mutex);
 				return (NULL);
 			}
 			i++;

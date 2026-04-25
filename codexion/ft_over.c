@@ -31,14 +31,13 @@ int	ft_over(t_hub *hub, t_manager manager)
 		}
 		i++;
 	}
-	i = 0;
-	while (i < hub->num_coders)
-	{
-		pthread_mutex_destroy(&hub->dongles[i].mutex);
-		pthread_cond_destroy(&hub->dongles[i].cond);
-		i++;
-	}
-	free(hub->dongles);
-	free(hub->coders);
+    pthread_mutex_destroy(&hub->server->mutex);
+    pthread_cond_destroy(&hub->server->list_cond);
+    pthread_mutex_destroy(&hub->over_mutex);
+    pthread_mutex_destroy(&hub->print_mutex);
+    free(hub->server->list_heap);
+    free(hub->server);
+    free(hub->dongles);
+    free(hub->coders);
 	return (0);
 }

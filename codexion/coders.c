@@ -24,6 +24,7 @@ void	init_coder(t_coder *coder, int id, t_hub *hub)
 	coder->last_compile = hub->start_time;
 	coder->right = &hub->dongles[id - 1];
 	coder->left = &hub->dongles[(id) % hub->num_coders];
+	//pthread_mutex_init(&coder->coder_mutex, NULL);
 }
 
 void	*coder_rotine(void *args)
@@ -35,6 +36,8 @@ void	*coder_rotine(void *args)
 	{
 		//requesting the dongles
 		req_compile(coder->hub->server, coder);	
+
+		//pthread_mutex_lock(&coder->hub->server->mutex);
 		if (coder->allowed)
 		{
 			coder->last_compile = get_time_ms();
@@ -52,6 +55,8 @@ void	*coder_rotine(void *args)
 			coder->counter++;
 			coder->deadline = coder->deadline + coder->hub->time_to_burnout;
 		}
+
+		//pthread_mutex_unlock(&coder->coder_mutex);
 		if (coder->counter >= coder->hub->compiles_required)
 			break;
 	}

@@ -43,12 +43,16 @@ t_coder	*ft_get_coder(int id, t_hub *hub)
 	}
 	return (NULL);
 }
-t_req *ft_remove(t_req *req, t_server *srv)
+
+t_req *ft_remove(t_req *req, t_req *prev,t_server *srv)
 {
 	t_req *tmp;
 
 	tmp = req->next;
-	srv->list_heap = tmp;
+	if (!prev)
+		srv->list_heap = tmp;
+	else
+		prev->next = tmp;
 	srv->heap_size--;
 	free(req);
 	return (tmp);
@@ -59,17 +63,17 @@ int	is_possible(t_coder *coder, t_hub *hub)
 	long	now;
 
 	now = get_time_ms();
-	pthread_mutex_lock(&coder->left->mutex);
 	if (coder->left->owner != -1
 			|| now - coder->left->released
 			< hub->dongle_cooldown)
+	{
 		return (0);
-	pthread_mutex_unlock(&coder->left->mutex);
-	pthread_mutex_lock(&coder->right->mutex);
+	}
 	if (coder->right->owner != -1 || now - coder->right->released
 			< hub->dongle_cooldown)
+	{
 		return (0);
-	pthread_mutex_unlock(&coder->right->mutex);
+	}
 
 	return (1);
 }
@@ -78,28 +82,26 @@ void	ft_grant_if_possible(t_server *srv, t_hub *hub)
 {
 	t_coder *coder;
 	t_req	*req;
+	t_req	*prev;
 
 	req = srv->list_heap;
-	while (srv->heap_size)
+	prev = NULL;
+	while (req)
 	{
 		coder = ft_get_coder(req->coder_id, hub);
 		if (coder && is_possible(coder, hub) == 1)
 		{
-			pthread_mutex_lock(&coder->left->mutex);
 			coder->left->owner = coder->id;
-			pthread_mutex_unlock(&coder->left->mutex);
-			if (coder->left != coder->right)
-			{
-				pthread_mutex_lock(&coder->right->mutex);
-				coder->right->owner = coder->id;
-				pthread_mutex_unlock(&coder->right->mutex);
-			}
+			coder->right->owner = coder->id;
 			coder->allowed = 1;
 			pthread_cond_broadcast(&srv->list_cond);
-			req = ft_remove(req, srv);
+			req = ft_remove(req, prev,srv);
+			prev = NULL;
+			req = srv->list_heap;
+			continue ;
 		}
-		else if (req->next)
-			req = req->next;
+		prev = req;
+		req = req->next;
 	}
 }
 
@@ -110,17 +112,18 @@ void	*ft_server_routine(void *args)
 
 	hub = (t_hub *)args;
 	srv = hub->server;
-	pthread_mutex_lock(&srv->mutex);
+	//pthread_mutex_lock(&srv->mutex);
 	while (!is_over(hub))
 	{
 		while (srv->heap_size == 0 && !is_over(hub))
-			pthread_cond_wait(&srv->list_cond, &srv->mutex);
+			;
+			//pthread_cond_wait(&srv->list_cond, &srv->mutex);
 		if (!is_over(hub))
 			ft_grant_if_possible(srv, hub);
 	}
-	pthread_cond_broadcast(&srv->list_cond);
+	//pthread_cond_broadcast(&srv->list_cond);
 
-	pthread_mutex_unlock(&srv->mutex);
+	//pthread_mutex_unlock(&srv->mutex);
 	return (NULL);
 }
 
@@ -186,16 +189,17 @@ void	req_compile(t_server *srv, t_coder *coder)
 {
 	t_req	req;
 
+	//pthread_mutex_lock(&srv->mutex);
 	req.coder_id = coder->id;
 	req.time = get_time_ms();
 	coder->allowed = 0;
 	req.deathline = coder->deadline;
-	pthread_mutex_lock(&srv->mutex);
 	ft_push(srv, &req);
 	pthread_cond_broadcast(&srv->list_cond);
 	while (!coder->allowed && !is_over(coder->hub))
-		pthread_cond_wait(&srv->list_cond, &srv->mutex);
-	pthread_mutex_unlock(&srv->mutex);
+		;
+		//pthread_cond_wait(&srv->list_cond, &srv->mutex);
+	//pthread_mutex_unlock(&srv->mutex);
 }
 
 int	ft_init_hub(t_hub *hub)
