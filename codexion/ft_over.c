@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:08:59 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 18:46:51 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 21:30:13 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,13 @@ int	ft_over(t_hub *hub, t_manager manager)
 		}
 		i++;
 	}
-    pthread_mutex_destroy(&hub->server->mutex);
-    pthread_cond_destroy(&hub->server->list_cond);
-    pthread_mutex_destroy(&hub->over_mutex);
-    pthread_mutex_destroy(&hub->print_mutex);
-    free(hub->server->list_heap);
-    free(hub->server);
-    free(hub->dongles);
-    free(hub->coders);
+	pthread_mutex_destroy(&hub->server->mutex);
+	pthread_cond_destroy(&hub->server->list_cond);
+	pthread_mutex_destroy(&hub->over_mutex);
+	pthread_mutex_destroy(&hub->print_mutex);
+	free(hub->server->list_heap);
+	free(hub->server);
+	free(hub->dongles);
+	free(hub->coders);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 14:28:40 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/26 20:23:04 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 21:06:54 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,12 @@ long	get_time_ms(void)
 
 void	loging(t_coder *coder, char *action)
 {
-	int over;
+	int	over;
 
 	if (is_over(coder->hub))
 		return ;
 	pthread_mutex_lock(&coder->hub->print_mutex);
-    pthread_mutex_lock(&coder->hub->over_mutex);
+	pthread_mutex_lock(&coder->hub->over_mutex);
 	over = coder->hub->over;
 	pthread_mutex_unlock(&coder->hub->over_mutex);
 	if (!over || strcmp(action, "burned out") == 0)

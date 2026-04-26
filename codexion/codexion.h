@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/26 20:44:48 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 21:18:45 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,4 +111,6 @@ void		*manager_rotine(void *args);
 int			ft_parser(int ac, char **av, t_hub *hub);
 void		req_compile(t_server *srv, t_coder *coder);
 void		*ft_server_routine(void *args);
+int			is_possible(t_coder *coder, t_hub *hub);
+t_req		*ft_create_item(t_req *req);
 #endif

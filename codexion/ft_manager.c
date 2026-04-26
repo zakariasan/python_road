@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:27:13 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/26 20:46:29 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 21:32:52 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ void	*manager_rotine(void *args)
 	{
 		i = 0;
 		w_done = 1;
-
 		while (i < manager->hub->num_coders)
 		{
 			if (get_time_ms() > manager->coders[i].deadline)
@@ -73,7 +72,7 @@ void	*manager_rotine(void *args)
 			pthread_cond_broadcast(&manager->hub->server->list_cond);
 			pthread_mutex_unlock(&manager->hub->server->mutex);
 			return (NULL);
-		}	
+		}
 		usleep(9000);
 	}
 	return (NULL);
