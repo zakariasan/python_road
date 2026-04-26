@@ -6,12 +6,11 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:27:13 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 20:51:39 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 20:46:29 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <unistd.h>
 
 int	is_over(t_hub *hub)
 {
@@ -41,36 +40,40 @@ void	*manager_rotine(void *args)
 	{
 		i = 0;
 		w_done = 1;
+
+		while (i < manager->hub->num_coders)
+		{
+			if (get_time_ms() > manager->coders[i].deadline)
+			{
+				loging(&manager->coders[i], "burned out");
+				set_over(manager->hub);
+				i = 0;
+				pthread_mutex_lock(&manager->hub->server->mutex);
+				pthread_cond_broadcast(&manager->hub->server->list_cond);
+				pthread_mutex_unlock(&manager->hub->server->mutex);
+				return (NULL);
+			}
+			i++;
+		}
+		i = 0;
 		while (i < manager->hub->num_coders)
 		{
 			if (manager->coders[i].counter < manager->hub->compiles_required)
+			{
 				w_done = 0;
+				break ;
+			}
 			i++;
 		}
 		i = 0;
 		if (w_done)
 		{
 			set_over(manager->hub);
-			//pthread_mutex_lock(&manager->hub->server->mutex);
-			//pthread_cond_broadcast(&manager->hub->server->list_cond);
-			//pthread_mutex_unlock(&manager->hub->server->mutex);
+			pthread_mutex_lock(&manager->hub->server->mutex);
+			pthread_cond_broadcast(&manager->hub->server->list_cond);
+			pthread_mutex_unlock(&manager->hub->server->mutex);
 			return (NULL);
-		}
-		while (i < manager->hub->num_coders)
-		{
-			if (get_time_ms() - manager->coders[i].last_compile
-				> manager->hub->time_to_burnout)
-			{
-				loging(&manager->coders[i], "burned out");
-				set_over(manager->hub);
-				i = 0;
-				//pthread_mutex_lock(&manager->hub->server->mutex);
-			//	pthread_cond_broadcast(&manager->hub->server->list_cond);
-				//pthread_mutex_unlock(&manager->hub->server->mutex);
-				return (NULL);
-			}
-			i++;
-		}
+		}	
 		usleep(9000);
 	}
 	return (NULL);

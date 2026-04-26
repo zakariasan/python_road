@@ -16,21 +16,18 @@
 int	ft_codexion(t_hub *hub)
 {
 	t_coder		*coder;
-	//t_dongle	*dongle;
 	t_manager	manager;
 	int			i;
 
 	i = 0;
 	coder = hub->coders;
-	//dongle = hub->dongles;
 	manager.coders = coder;
 	manager.hub = hub;
 	if (pthread_create(&manager.thread
 			, NULL, manager_rotine, &manager) != 0)
 		return (-1);
-		
-//	printf("server ptr: %p\n", (void *)hub->server);
-	if (pthread_create(&hub->server->thread ,NULL, ft_server_routine, hub) != 0)
+	if (pthread_create(&hub->server->thread
+			, NULL, ft_server_routine, hub) != 0)
 		return (-1);
 	while (i < hub->num_coders)
 	{
@@ -52,6 +49,6 @@ int	main(int ac, char **av)
 	if (ft_init_hub(&hub) != 0)
 		return (-1);
 	if (ft_codexion(&hub) != 0)
-		return(-1);
+		return (-1);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 22:06:34 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 21:03:07 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 20:54:36 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ int	is_possible(t_coder *coder, t_hub *hub)
 {
 	long	now;
 
+	if (coder->left  == coder->right)
+		return (0);
 	now = get_time_ms();
 	if (coder->left->owner != -1
 			|| now - coder->left->released
@@ -93,7 +95,7 @@ void	ft_grant_if_possible(t_server *srv, t_hub *hub)
 		{
 			coder->left->owner = coder->id;
 			coder->right->owner = coder->id;
-			coder->allowed = 1;
+			coder->allowed = 1;	
 			pthread_cond_broadcast(&srv->list_cond);
 			req = ft_remove(req, prev,srv);
 			prev = NULL;
@@ -112,18 +114,25 @@ void	*ft_server_routine(void *args)
 
 	hub = (t_hub *)args;
 	srv = hub->server;
-	//pthread_mutex_lock(&srv->mutex);
+
+
+	pthread_mutex_lock(&srv->mutex);
 	while (!is_over(hub))
 	{
 		while (srv->heap_size == 0 && !is_over(hub))
-			;
-			//pthread_cond_wait(&srv->list_cond, &srv->mutex);
-		if (!is_over(hub))
-			ft_grant_if_possible(srv, hub);
+			pthread_cond_wait(&srv->list_cond, &srv->mutex);
+		if (is_over(hub))
+			break ;
+		ft_grant_if_possible(srv, hub);
+		if (srv->heap_size > 0 && !is_over(hub))
+		{
+			pthread_mutex_unlock(&srv->mutex);
+			usleep(hub->dongle_cooldown * 1000);
+			pthread_mutex_lock(&srv->mutex);
+		}
 	}
-	//pthread_cond_broadcast(&srv->list_cond);
-
-	//pthread_mutex_unlock(&srv->mutex);
+	pthread_cond_broadcast(&srv->list_cond);
+	pthread_mutex_unlock(&srv->mutex);
 	return (NULL);
 }
 
@@ -162,25 +171,26 @@ t_req	*ft_push(t_server *srv, t_req *req)
 	}
 	else if (srv->scheduler == EDF)
 	{
+		if (tmp->deathline < item->deathline)
+		{
+			tmp->next = item;
+			srv->list_heap = tmp;
+			return (tmp);
+		}
 		prev = item;
+		item = item->next;
 		while (item->next)
 		{
-			if (prev == item && tmp->deathline < item->deathline)
+			if (tmp->deathline < item->deathline)
 			{
-				tmp->next = item;
-				srv->list_heap = tmp;
-				return (tmp);
-			}
-			else if (tmp->deathline < item->deathline)
-			{
-				prev->next = tmp;
+				prev->next =tmp;
 				tmp->next = item;
 				return (srv->list_heap);
 			}
 			prev = item;
 			item = item->next;
 		}
-		item->next = tmp;
+		prev->next = tmp;
 	}
 	return (req);
 }
@@ -189,17 +199,18 @@ void	req_compile(t_server *srv, t_coder *coder)
 {
 	t_req	req;
 
-	//pthread_mutex_lock(&srv->mutex);
 	req.coder_id = coder->id;
 	req.time = get_time_ms();
-	coder->allowed = 0;
 	req.deathline = coder->deadline;
+
+	pthread_mutex_lock(&srv->mutex);
+	coder->allowed = 0;
 	ft_push(srv, &req);
 	pthread_cond_broadcast(&srv->list_cond);
 	while (!coder->allowed && !is_over(coder->hub))
-		;
-		//pthread_cond_wait(&srv->list_cond, &srv->mutex);
-	//pthread_mutex_unlock(&srv->mutex);
+		pthread_cond_wait(&srv->list_cond, &srv->mutex);
+
+	pthread_mutex_unlock(&srv->mutex);
 }
 
 int	ft_init_hub(t_hub *hub)
@@ -216,13 +227,13 @@ int	ft_init_hub(t_hub *hub)
 	hub->dongles = dongle;
 	hub->coders = coder;
 	hub->start_time = get_time_ms();
+	hub->over = 0;
 	while (i < hub->num_coders)
 	{
 		init_coder(&coder[i], i + 1, hub);
 		init_dongle(&dongle[i], i + 1, hub->dongle_cooldown, -1);
 		i++;
 	}
-	hub->over = 0;
 	pthread_mutex_init(&hub->over_mutex, NULL);
 	pthread_mutex_init(&hub->print_mutex, NULL);
 	if (ft_init_server(hub) != 0)

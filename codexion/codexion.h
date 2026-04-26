@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/24 20:00:11 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/04/26 20:44:48 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,6 @@ typedef enum e_scheduler
 
 typedef struct s_dongle
 {
-	//pthread_mutex_t	mutex;
-	//pthread_cond_t	cond;
 	long			released;
 	int				cooldown;
 	int				id;
@@ -41,7 +39,6 @@ typedef struct s_dongle
 
 typedef struct s_coder
 {
-	pthread_mutex_t	coder_mutex;
 	long			last_compile;
 	long			deadline;
 	int				counter;
@@ -60,20 +57,19 @@ typedef struct s_manager
 	t_hub		*hub;
 }				t_manager;
 
-typedef struct 	s_req
+typedef struct s_req
 {
 	int				coder_id;
 	long			deathline;
 	long			time;
 	struct s_req	*next;
-}				t_req;
+}					t_req;
 
 typedef struct s_server
 {
 	pthread_t		thread;
 	pthread_mutex_t	mutex;
 	pthread_cond_t	list_cond;
-	pthread_cond_t	*coder_bed;
 	t_req			*list_heap;
 	int				heap_size;
 	t_coder			*coders;
@@ -100,7 +96,6 @@ typedef struct s_hub
 	t_req			*req;
 }				t_hub;
 
-
 int			ft_over(t_hub *hub, t_manager manager);
 int			is_over(t_hub *hub);
 void		set_over(t_hub *hub);
@@ -114,7 +109,6 @@ void		init_coder(t_coder *coder, int id, t_hub *hub);
 void		*coder_rotine(void *args);
 void		*manager_rotine(void *args);
 int			ft_parser(int ac, char **av, t_hub *hub);
-
-void	req_compile(t_server *srv, t_coder *coder);
-void	*ft_server_routine(void *args);
+void		req_compile(t_server *srv, t_coder *coder);
+void		*ft_server_routine(void *args);
 #endif
