@@ -6,6 +6,13 @@
 # 5.2 no dashes and spaces
 # 6 connection no duplication structure be like zone01-zone02 [metadata]
 
+# reading lines
+# check line
+#   > the key is valide what is expected to be not
+#   repeated while checking others
+#   > the value is valide depend on what we have
+# is it a valide file
+# then reading the file again.
 def ft_check_drones(game: dict, key: str, val: str):
     """Check number of drones
 
@@ -17,15 +24,17 @@ def ft_check_drones(game: dict, key: str, val: str):
     Raises:
         val is not a number
     """
-    if 'nb_drones' not in game:
-        try:
+    try:
+        if 'nb_drones' not in game:
             nbr = ('', int(val))[val.isdigit()]
             if nbr and nbr > 0:
                 game[key] = nbr
             else:
                 raise ValueError("Number of drones must be constante digites")
-        except Exception as e:
-            print(e)
+        else:
+            raise ValueError("Set muliple values of nb_drones")
+    except Exception as e:
+        print(e)
 
 
 def ft_check_hub(game: dict, key: str, val: str):
@@ -39,7 +48,22 @@ def ft_check_hub(game: dict, key: str, val: str):
     Raises:
         hub is not valide
     """
-    pass
+    try:
+        if 'hubs' not in game:
+            game['hubs'] = {}
+        hubs = game['hubs']
+        if ((key == 'start_hub'
+                or key == 'end_hub')
+                and key not in hubs):
+            nbr = ('', int(val))[val.isdigit()]
+            if nbr and nbr > 0:
+                game[key] = nbr
+            else:
+                raise ValueError("Number of drones must be constante digites")
+        else:
+            raise ValueError("Set muliple values of nb_drones")
+    except Exception as e:
+        print(e)
 
 
 def ft_check_connexion(game: dict, key: str, val: str):
