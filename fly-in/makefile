@@ -4,7 +4,7 @@
 #	pip install -r requirements.txt
 
 run:
-	python main.py config.txt
+	python main.py 01_linear_path.txt
 
 debug:
 	python -m pdb a_maze_ing.py config.txt

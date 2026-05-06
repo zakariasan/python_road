@@ -1,0 +1,6 @@
+# it;s a test file
+#        print(f'>>>>{game.hubs}')
+nb_drones: 2
+start_hub: A 0 0
+end_hub: B 0 0
+connection: A-B
