@@ -21,8 +21,8 @@ def main():
             for item in game.hubs:
                 print(f'\n>>>>{item}: {game.hubs[item]}')
             print(f'>>>>{game.net}')
-        except Exception as e:
-            print(f'Config Error: {e}')
+        except (ParseError, ValidationError) as e:
+            print(f'{e}')
 
 
 if __name__ == '__main__':

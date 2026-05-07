@@ -130,3 +130,15 @@ class Game:
             elif item.name2 == hub_name:
                 neigbor.append((all_hubs[item.name1], item))
         return neigbor
+
+
+@dataclass
+class Drone:
+    """Drone sculter"""
+    idx: int
+    x: int
+    y: int
+    path: Optional[Hub] = None
+    speed: int = 0.02
+    current_index: int = 0
+    t: float = 0.0
