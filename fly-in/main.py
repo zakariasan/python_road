@@ -14,6 +14,8 @@ def main():
 
         try:
             game = ft_valide_file(sys.argv[1])
+            game.s_hub.meta.max_drones = game.nb_drones
+            game.e_hub.meta.max_drones = game.nb_drones
             run(game)
             print(f'>>>>{game.nb_drones}')
             print(f'>>>>{game.s_hub}')

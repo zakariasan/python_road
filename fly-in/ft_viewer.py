@@ -1,12 +1,12 @@
 """ Where you can see the Game of Drones """
 import pygame
-from math import sqrt
 from typing import Tuple
 from models import Zone, Game, Net, Drone
 from ft_config import WIDTH, HEIGHT, PADDING, \
         NODE_RADIUS, BORDER_WIDTH, BORDER_COLORS, \
-        RECT_SIZE, ZONE_COLORS
+        RECT_SIZE, ZONE_COLORS, to_screen
 from ft_pathfinder import A_star
+from ft_sim import ft_sim, ft_setup_drones, ft_draw_drone, ft_update_drone, all_drones_arrived
 
 
 def get_zone_color(zone: Zone, color: str):
@@ -16,19 +16,12 @@ def get_zone_color(zone: Zone, color: str):
             color = pygame.Color(color)
         except ValueError:
             color = (170, 51, 106)
+        return color
     return ZONE_COLORS.get(zone, (165, 42, 42))
 
 
 def get_border_color(zone: Zone):
     return BORDER_COLORS.get(zone, (55, 55, 55))
-
-
-def to_screen(val: int, min_val: int, max_val: int, size: int) -> int:
-    """ convert from graph into screen according our size """
-    if max_val == min_val:
-        return size / 2
-    return int(((val - min_val) / (max_val - min_val)) * (size - 2 * PADDING)
-               + PADDING)
 
 
 def get_bounds(game: Game) -> Tuple[int, int, int, int]:
@@ -100,11 +93,12 @@ def draw_hubs(screen, game: Game, bounds, font):
         b_color = get_border_color(hub.meta.zone)
         draw_node(screen, hub, x, y, color, b_color)
 
+        nb = hub.meta.max_drones
         if pr % 2 == 0:
-            text = font.render(name, True, (255, 255, 255))
+            text = font.render(f'{name}:{nb}', True, (255, 255, 255))
             screen.blit(text, (x, y - 45))
         else:
-            text = font.render(name, True, (255, 255, 255))
+            text = font.render(f'{name}:{nb}', True, (255, 255, 255))
             screen.blit(text, (x, y + 45))
         pr += 1
 
@@ -132,55 +126,6 @@ def draw_connections(screen, game: Game, bounds):
         )
 
 
-def ft_build_simple_path(game: Game):
-    """Build the simple path"""
-    ne = game.get_neighbors(game.s_hub.name)
-    return ne
-
-
-def ft_setup_drones(game: Game):
-    """Set up the drones that we need to update later"""
-    drone: [Drone] = []
-    path = ft_build_simple_path(game)
-    # path = A_star(game)
-    for i in range(game.nb_drones):
-        drone.append(Drone(i, game.s_hub.x, game.s_hub.y, path))
-    return drone
-
-
-def ft_draw_drone(screen, drone: Drone, bounds):
-    """Draw a drone shape"""
-    min_x, max_x, min_y, max_y = bounds
-    x = to_screen(drone.x, min_x, max_x, WIDTH)
-    y = to_screen(drone.y, min_y, max_y, HEIGHT)
-    pygame.draw.circle(screen, (255, 255, 255), (int(x), int(y)), 10)
-
-
-def ft_update_drone(drone: Drone, game: Game):
-
-    if drone.current_index >= len(drone.path):
-        return
-
-    target = drone.path[drone.current_index]
-    target = game.all_hubs()[target]
-
-    dx = target.x - drone.x
-    dy = target.y - drone.y
-    dist = sqrt(dx * dx + dy * dy)
-
-    if dist < drone.speed:
-        drone.x = target.x
-        drone.y = target.y
-        drone.current_index += 1
-        return
-
-    vx = (dx / dist) * drone.speed
-    vy = (dy / dist) * drone.speed
-
-    drone.x += vx
-    drone.y += vy
-
-
 def run(game: Game) -> None:
     """Run the simulation with pygame"""
 
@@ -195,6 +140,7 @@ def run(game: Game) -> None:
     running = True
     clock = pygame.time.Clock()
     drones: [Drone] = ft_setup_drones(game)
+    turns: int = 0
     while running:
         screen.fill((30, 30, 30))
 
@@ -204,15 +150,19 @@ def run(game: Game) -> None:
 
         header = header_font.render(
                 f"Number of drones : {game.nb_drones}", True, (0, 191, 255))
-
-        screen.blit(header, (WIDTH / 2 - 250, 0))
+        turn_calc = header_font.render(
+                f"Number of turnes: {turns}", True, (0, 190, 255))
+        screen.blit(header, (10, 5))
+        screen.blit(turn_calc, (WIDTH - 800, 5))
         draw_connections(screen, game, bounds)
         draw_hubs(screen, game, bounds, font)
 
         for drone in drones:
-            drone.path = A_star(game)
             ft_update_drone(drone, game)
             ft_draw_drone(screen, drone, bounds)
+        if all_drones_arrived(drones):
+            turns += ft_sim(game, drones, screen, bounds)
+
         pygame.display.flip()
         clock.tick(60)
 

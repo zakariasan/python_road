@@ -23,11 +23,11 @@ def reconstruct_path(came_from, current):
     while current is not None:
         path.append(current)
         current = came_from[current]
-        path.reverse()
+    path.reverse()
     return path
 
 
-def A_star(game: Game, start):
+def A_star(game: Game, start, visited=[]):
     """Find the optimal path (list of Hubs) from s to e
     """
     # start = game.s_hub
@@ -38,7 +38,6 @@ def A_star(game: Game, start):
 
     g_score = {start.name: 0.0}
     f_score = {start.name: heuristic(start, end)}
-    visited = []
 
     while open_set:
         current = min(open_set, key=lambda x: f_score[x])
@@ -47,16 +46,18 @@ def A_star(game: Game, start):
         if current == end.name:
             return reconstruct_path(came_from, current)
 
-        visited.append(current)
+    #    visited.append(current)
 
         for n, net in game.get_neighbors(current):
 
             if n.name in visited:
                 continue
-
-            cost = move_cost(n)
             if n.meta.zone == Zone.blocked:
                 continue
+            if len(n.drones) >= n.meta.max_drones:
+                continue
+
+            cost = move_cost(n)
             new_g_score = g_score[current] + cost
 
             if n.name not in g_score or new_g_score < g_score[n.name]:
@@ -65,4 +66,5 @@ def A_star(game: Game, start):
                 came_from[n.name] = current
                 if n.name not in open_set:
                     open_set.append(n.name)
-    return []
+    return reconstruct_path(came_from, current)
+   #  return []

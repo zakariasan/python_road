@@ -1,58 +1,85 @@
-from models import Game
+from models import Game, Drone
+from ft_pathfinder import A_star
+from math import sqrt
+import pygame
+from ft_config import HEIGHT, WIDTH, to_screen
 
 
-def ft_simulate(game):
-    n          = game.nb_drones
-    end_name   = game.e_hub.name
-    pos        = [game.s_hub.name] * n   # all start at start
-    done       = [False] * n
-    sim_turn   = 0
+def ft_build_simple_path(game: Game):
+    """Build the simple path"""
+    ne = game.get_neighbors(game.s_hub.name)
+    return ne
 
-    while not all(done):
-        sim_turn += 1
-        turn_moves = []
 
-        # --- who is sitting in each hub right now ---
-        occ = {}
-        for i in range(n):
-            if done[i]:
-                continue
-            occ[pos[i]] = occ.get(pos[i], 0) + 1
+def ft_setup_drones(game: Game):
+    """Set up the drones that we need to update later"""
+    drone: [Drone] = []
+    for i in range(game.nb_drones):
+        path = A_star(game, game.s_hub)
+        drone.append(Drone(i + 1, game.s_hub.x, game.s_hub.y, path, game.s_hub.name))
+        game.s_hub.drones.append(f'D-{drone[i].idx}')
+    return drone
 
-        # --- each drone decides ---
-        for i in range(n):
-            if done[i]:
-                continue
 
-            # Q1: already at goal?
-            if pos[i] == end_name:
-                done[i] = True
-                continue
+def ft_update_drone(drone: Drone, game: Game):
 
-            # Q2: what is my best next hop?
-            path = A_star(game, pos[i])
-            if not path or len(path) < 2:
-                continue
-            next_hub = path[1]
+    if not drone.next_hub:
+        return
 
-            # Q3: is it full?
-            capacity = next_hub.meta.max_drones
-            if next_hub.name == end_name:
-                capacity = 999   # end hub unlimited
+    target = game.all_hubs()[drone.next_hub]
 
-            current  = occ.get(next_hub.name, 0)
-            leaving  = 1 if pos[i] != next_hub.name else 0  
+    dx = target.x - drone.x
+    dy = target.y - drone.y
+    dist = sqrt(dx * dx + dy * dy)
+    if dist <= drone.speed or (drone.x == target.x and drone.y == target.y):
+        drone.x = target.x
+        drone.y = target.y
+        drone.hub_name = target.name
+        drone.next_hub = None
+        
+        return
 
-            if current - leaving < capacity:
-                # ✅ move
-                occ[pos[i]]        = occ.get(pos[i], 0) - 1
-                occ[next_hub.name] = occ.get(next_hub.name, 0) + 1
-                pos[i]             = next_hub.name
-                turn_moves.append(f"D{i+1}-{next_hub.name}")
-                if next_hub.name == end_name:
-                    done[i] = True
-            # else: wait, do nothing
+    vx = (dx / dist) * drone.speed
+    vy = (dy / dist) * drone.speed
 
-        print(f"Turn {sim_turn}: {' '.join(turn_moves)}")
+    drone.x += vx
+    drone.y += vy
 
-    print(f"\n✅ {n} drones done in {sim_turn} turns")
+
+def ft_draw_drone(screen, drone: Drone, bounds):
+    """Draw a drone shape"""
+    min_x, max_x, min_y, max_y = bounds
+    x = to_screen(drone.x, min_x, max_x, WIDTH)
+    y = to_screen(drone.y, min_y, max_y, HEIGHT)
+    pygame.draw.circle(screen, (255, 255, 255), (int(x), int(y)), 10)
+
+
+def all_drones_arrived(drones):
+    for drone in drones:
+        if drone.next_hub is not None:
+            return False
+
+    return True
+
+
+def ft_sim(game, drones, screen, bounds):
+    """Simulation goes here """
+    moves: int = 0
+    for drone in drones:
+        where = game.all_hubs()[drone.hub_name]
+        if drone.hub_name == game.e_hub.name:
+            continue
+        drone.path = []
+        drone.path = A_star(game, where, drone.visited)
+        if len(drone.path) > 1:
+            drone.next_hub = drone.path[1]
+            origine = game.all_hubs()[drone.hub_name]
+            target = game.all_hubs()[drone.next_hub]
+            if f'D-{drone.idx}' in origine.drones:
+                origine.drones.remove(f'D-{drone.idx}')
+            target.drones.append(f'D-{drone.idx}')
+            drone.visited.append(origine.name)
+            moves += 1
+    if moves != 0:
+        return 1
+    return 0

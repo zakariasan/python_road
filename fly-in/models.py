@@ -36,6 +36,7 @@ class Hub:
     x: int
     y: int
     meta: Metadata
+    drones: [str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Validate Hub After creation."""
@@ -139,6 +140,9 @@ class Drone:
     x: int
     y: int
     path: Optional[Hub] = None
-    speed: int = 0.02
+    hub_name: str = None
+    next_hub: str = None
+    speed: float = 0.02
     current_index: int = 0
     t: float = 0.0
+    visited: [str] = field(default_factory=list)
