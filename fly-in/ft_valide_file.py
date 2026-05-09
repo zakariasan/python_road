@@ -118,12 +118,10 @@ def ft_check_hub(key: str, value: str, game: Game) -> None:
         if game.s_hub:
             raise ValidationError("Multiple start hub.")
         game.s_hub = hub
-        game.s_hub.meta.max_drones = game.nb_drones
     elif key == 'end_hub':
         if game.e_hub:
             raise ValidationError("Multiple end hub.")
         game.e_hub = hub
-        game.s_hub.meta.max_drones = game.nb_drones
     else:
         game.hubs[name] = hub
 

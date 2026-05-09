@@ -15,14 +15,16 @@ def ft_setup_drones(game: Game):
     """Set up the drones that we need to update later"""
     drone: [Drone] = []
     for i in range(game.nb_drones):
-        path = A_star(game, game.s_hub)
-        drone.append(Drone(i + 1, game.s_hub.x, game.s_hub.y, path, game.s_hub.name))
+        path = None
+        drone.append(
+                Drone(
+                    i + 1, game.s_hub.x, game.s_hub.y, path, game.s_hub.name))
         game.s_hub.drones.append(f'D-{drone[i].idx}')
     return drone
 
 
 def ft_update_drone(drone: Drone, game: Game):
-
+    """Move drone from hub to next one if it's possible"""
     if not drone.next_hub:
         return
 
@@ -35,8 +37,10 @@ def ft_update_drone(drone: Drone, game: Game):
         drone.x = target.x
         drone.y = target.y
         drone.hub_name = target.name
+        if drone.net:
+            drone.net.usage -= 1
+            drone.net = None
         drone.next_hub = None
-        
         return
 
     vx = (dx / dist) * drone.speed
@@ -65,21 +69,33 @@ def all_drones_arrived(drones):
 def ft_sim(game, drones, screen, bounds):
     """Simulation goes here """
     moves: int = 0
+    turn: int = 1
     for drone in drones:
         where = game.all_hubs()[drone.hub_name]
+        to = game.e_hub
         if drone.hub_name == game.e_hub.name:
             continue
-        drone.path = []
-        drone.path = A_star(game, where, drone.visited)
+        drone.path = A_star(game, where, to)
         if len(drone.path) > 1:
-            drone.next_hub = drone.path[1]
             origine = game.all_hubs()[drone.hub_name]
-            target = game.all_hubs()[drone.next_hub]
+            target = game.all_hubs()[drone.path[1]]
+
+            if len(target.drones) >= target.meta.max_drones:
+                continue
+            net = game.get_network(origine, target)
+            if not net or not net.can_use():
+                drone.nextd_hub = None
+                continue
+            drone.next_hub = drone.path[1]
+            drone.net = net
+            net.reserve()
             if f'D-{drone.idx}' in origine.drones:
                 origine.drones.remove(f'D-{drone.idx}')
             target.drones.append(f'D-{drone.idx}')
             drone.visited.append(origine.name)
             moves += 1
+            if target.meta.zone == 'restricted':
+                turn = 2
     if moves != 0:
-        return 1
+        return turn
     return 0

@@ -56,6 +56,7 @@ class Net:
     name1: str
     name2: str
     meta: Metadata
+    usage: int = 0
 
     def __post_init__(self) -> None:
         """ Check the network """
@@ -65,6 +66,15 @@ class Net:
             raise ValidationError("Connection cannot be the same hub.")
         if self.meta is None:
             self.meta = Metadata()
+
+    def can_use(self) -> bool:
+        """Check the netwrok is free or no"""
+        return self.usage < self.meta.max_link_capacity
+
+    def reserve(self) -> None:
+        """use the link"""
+        if self and self.can_use():
+            self.usage += 1
 
 
 @dataclass
@@ -118,7 +128,7 @@ class Game:
             return False
         return True
 
-    def get_neighbors(self, hub_name: Hub) -> List[Tuple[Hub, Net]]:
+    def get_neighbors(self, hub_name: str) -> List[Tuple[Hub, Net]]:
         """ get neighbors of a Hub"""
         neigbor = []
         if hub_name not in self.all_names():
@@ -132,6 +142,13 @@ class Game:
                 neigbor.append((all_hubs[item.name1], item))
         return neigbor
 
+    def get_network(self, origine, target) -> Net:
+        """Get network of the link between origine and target"""
+        for ne, net in self.get_neighbors(origine.name):
+            if ne.name == target.name:
+                return net
+        return None
+
 
 @dataclass
 class Drone:
@@ -142,7 +159,8 @@ class Drone:
     path: Optional[Hub] = None
     hub_name: str = None
     next_hub: str = None
-    speed: float = 0.02
+    net: Net = None
+    speed: float = 1.01
     current_index: int = 0
     t: float = 0.0
     visited: [str] = field(default_factory=list)

@@ -2,11 +2,11 @@
 import pygame
 from typing import Tuple
 from models import Zone, Game, Net, Drone
-from ft_config import WIDTH, HEIGHT, PADDING, \
+from ft_config import WIDTH, HEIGHT, \
         NODE_RADIUS, BORDER_WIDTH, BORDER_COLORS, \
         RECT_SIZE, ZONE_COLORS, to_screen
-from ft_pathfinder import A_star
-from ft_sim import ft_sim, ft_setup_drones, ft_draw_drone, ft_update_drone, all_drones_arrived
+from ft_sim import ft_sim, ft_setup_drones, \
+        ft_draw_drone, ft_update_drone, all_drones_arrived
 
 
 def get_zone_color(zone: Zone, color: str):
@@ -141,12 +141,16 @@ def run(game: Game) -> None:
     clock = pygame.time.Clock()
     drones: [Drone] = ft_setup_drones(game)
     turns: int = 0
+    step_turn = False
     while running:
         screen.fill((30, 30, 30))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    step_turn = True
 
         header = header_font.render(
                 f"Number of drones : {game.nb_drones}", True, (0, 191, 255))
@@ -160,8 +164,11 @@ def run(game: Game) -> None:
         for drone in drones:
             ft_update_drone(drone, game)
             ft_draw_drone(screen, drone, bounds)
-        if all_drones_arrived(drones):
-            turns += ft_sim(game, drones, screen, bounds)
+
+        if step_turn:
+            if all_drones_arrived(drones):
+                turns += ft_sim(game, drones, screen, bounds)
+                step_turn = False
 
         pygame.display.flip()
         clock.tick(60)
