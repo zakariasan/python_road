@@ -4,7 +4,7 @@ from errors import ParseError, ValidationError
 from ft_viewer import run
 
 
-def main():
+def main() -> None:
     """ Starting the Game of fly-in """
 
     if len(sys.argv) != 2:
@@ -14,15 +14,11 @@ def main():
 
         try:
             game = ft_valide_file(sys.argv[1])
+            if game.s_hub is None or game.e_hub is None:
+                raise ValidationError("Missing start or End")
             game.s_hub.meta.max_drones = game.nb_drones
             game.e_hub.meta.max_drones = game.nb_drones
             run(game)
-            print(f'>>>>{game.nb_drones}')
-            print(f'>>>>{game.s_hub}')
-            print(f'>>>>{game.e_hub}')
-            for item in game.hubs:
-                print(f'\n>>>>{item}: {game.hubs[item]}')
-            print(f'>>>>{game.net}')
         except (ParseError, ValidationError) as e:
             print(f'{e}')
 

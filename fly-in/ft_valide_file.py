@@ -3,7 +3,7 @@ from errors import ParseError, ValidationError
 from typing import Optional
 
 
-def ft_check_connection(value: str, game: Game):
+def ft_check_connection(value: str, game: Game) -> None:
     """ Check the connection part
     connection name1-name2 [metadata]
 
@@ -30,11 +30,11 @@ def ft_check_connection(value: str, game: Game):
 
     if k1 in game.net or k2 in game.net:
         raise ValueError('Duplicated network')
-    meta = ft_parse_meta(meta)
-    game.net[k1] = Net(n1, n2, meta)
+    meta_data = ft_parse_meta(meta)
+    game.net[k1] = Net(n1, n2, meta_data)
 
 
-def ft_parse_meta(meta: Optional[str]) -> Metadata:
+def ft_parse_meta(meta_d: Optional[str]) -> Metadata:
     """ parse meta data [zone='4 types' color=None ]
 
     Args:
@@ -43,16 +43,16 @@ def ft_parse_meta(meta: Optional[str]) -> Metadata:
     Return:
         Meta object that has zone color [max_drones/max_link]
     """
-    if not meta:
+    if not meta_d:
         return Metadata()
-    if not (meta.startswith('[') and meta.endswith(']')):
+    if not (meta_d.startswith('[') and meta_d.endswith(']')):
         raise ValueError("Metadata structure must be [start-end]")
 
-    meta: str = meta[1:-1].strip()
+    meta: str = meta_d[1:-1].strip()
     if not meta:
         return Metadata()
 
-    ele: list = ['zone', 'color', 'max_drones', 'max_link_capacity']
+    ele: list[str] = ['zone', 'color', 'max_drones', 'max_link_capacity']
     meta_obj = Metadata()
     for item in meta.split():
         if '=' not in item:
@@ -76,7 +76,7 @@ def ft_parse_meta(meta: Optional[str]) -> Metadata:
     return meta_obj
 
 
-def ft_split_meta(value: str):
+def ft_split_meta(value: str) -> tuple[str, str]:
     """ Split the Hub string before parsing/validation"""
     if '[' in value:
         i = value.index('[')
@@ -92,15 +92,19 @@ def ft_check_hub(key: str, value: str, game: Game) -> None:
         value: value of the key
         game: object of the Game
     """
+    data: str
+    meta: Optional[str]
     data, meta = ft_split_meta(value)
-    chunks: str = data.split()
+    chunks: list[str] = data.split()
     if len(chunks) != 3:
         raise ParseError("Invalide hub format.")
-    name, x, y = chunks
+    name: str = chunks[0]
+    x_s: str = chunks[1]
+    y_s: str = chunks[2]
 
     try:
-        x: int = int(x)
-        y: int = int(y)
+        x: int = int(x_s)
+        y: int = int(y_s)
     except ValueError:
         raise ParseError("Coordinates must be integers.")
     if meta == '':
@@ -111,8 +115,8 @@ def ft_check_hub(key: str, value: str, game: Game) -> None:
 
     if (x, y) in game.all_coords():
         raise ValidationError(f"Duplicated coor({x},{y})")
-    meta = ft_parse_meta(meta)
-    hub = Hub(name, x, y, meta)
+    meta_data: Metadata = ft_parse_meta(meta)
+    hub: Hub = Hub(name, x, y, meta_data)
 
     if key == 'start_hub':
         if game.s_hub:
@@ -151,7 +155,7 @@ def ft_valide_key(key: str, game: Game) -> None:
         key: key value.
         game: dict of the game
     """
-    req_key: list = {
+    req_key: set[str] = {
             'nb_drones',
             'start_hub',
             'hub',

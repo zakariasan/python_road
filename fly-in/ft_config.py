@@ -24,6 +24,6 @@ END_COLOR = (255, 255, 0)
 def to_screen(val: int, min_val: int, max_val: int, size: int) -> int:
     """ convert from graph into screen according our size """
     if max_val == min_val:
-        return size / 2
+        return int(size / 2)
     return int(((val - min_val) / (max_val - min_val)) * (size - 2 * PADDING)
                + PADDING)

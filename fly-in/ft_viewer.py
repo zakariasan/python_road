@@ -1,26 +1,31 @@
 """ Where you can see the Game of Drones """
-import pygame
-from typing import Tuple
-from models import Zone, Game, Net, Drone
+import pygame  # type: ignore
+from typing import Tuple, List, Optional
+from models import Zone, Game, Net, Drone, Hub
 from ft_config import WIDTH, HEIGHT, \
         NODE_RADIUS, BORDER_WIDTH, BORDER_COLORS, \
-        RECT_SIZE, ZONE_COLORS, to_screen
+        RECT_SIZE, to_screen
 from ft_sim import ft_sim, ft_setup_drones, \
         ft_draw_drone, ft_update_drone, all_drones_arrived
 
 
-def get_zone_color(zone: Zone, color: str):
+def get_zone_color(
+        zone: Zone,
+        color: Optional[str]
+        ) -> tuple[int, int, int]:
     """Return the Hub color accrding the ZOne or color """
+    c = (170, 51, 106)
     if color:
         try:
-            color = pygame.Color(color)
+            c_s = pygame.Color(color)
+            c = (c_s.r, c_s.g, c_s.b)
         except ValueError:
-            color = (170, 51, 106)
-        return color
-    return ZONE_COLORS.get(zone, (165, 42, 42))
+            pass
+    return c
+    # return ZONE_COLORS.get(zone, (165, 42, 42))
 
 
-def get_border_color(zone: Zone):
+def get_border_color(zone: Zone) -> tuple[int, int, int]:
     return BORDER_COLORS.get(zone, (55, 55, 55))
 
 
@@ -39,7 +44,14 @@ def get_link_color(net: Net) -> Tuple[int, int, int]:
     return (180, 180, 180)
 
 
-def draw_node(screen, hub, x, y, color, b_color):
+def draw_node(
+        screen: pygame.Surface,
+        hub: Hub,
+        x: int,
+        y: int,
+        color: tuple[int, int, int],
+        b_color: tuple[int, int, int]
+        ) -> None:
     """Draw a hub with shape + border depending on zone"""
 
     zone = hub.meta.zone
@@ -72,7 +84,12 @@ def draw_node(screen, hub, x, y, color, b_color):
                            NODE_RADIUS, BORDER_WIDTH)
 
 
-def draw_hubs(screen, game: Game, bounds, font):
+def draw_hubs(
+        screen: pygame.Surface,
+        game: Game,
+        bounds: tuple[int, int, int, int],
+        font: pygame.font
+        ) -> None:
     """
     Draw Each Hub with it;s Credentials
 
@@ -88,7 +105,9 @@ def draw_hubs(screen, game: Game, bounds, font):
         x = to_screen(hub.x, min_x, max_x, WIDTH)
         y = to_screen(hub.y, min_y, max_y, HEIGHT)
 
-        color = get_zone_color(hub.meta.zone, hub.meta.color)
+        color: tuple[int, int, int] = get_zone_color(
+                hub.meta.zone,
+                hub.meta.color)
 
         b_color = get_border_color(hub.meta.zone)
         draw_node(screen, hub, x, y, color, b_color)
@@ -103,7 +122,11 @@ def draw_hubs(screen, game: Game, bounds, font):
         pr += 1
 
 
-def draw_connections(screen, game: Game, bounds):
+def draw_connections(
+        screen: pygame.Surface,
+        game: Game,
+        bounds: tuple[int, int, int, int]
+        ) -> None:
     min_x, max_x, min_y, max_y = bounds
     hubs = game.all_hubs()
 
@@ -139,12 +162,13 @@ def run(game: Game) -> None:
 
     running = True
     clock = pygame.time.Clock()
-    drones: [Drone] = ft_setup_drones(game)
+    drones: List[Drone] = ft_setup_drones(game)
     turns: int = 0
     step_turn = False
     while running:
         screen.fill((30, 30, 30))
 
+        step_turn = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False

@@ -36,7 +36,7 @@ class Hub:
     x: int
     y: int
     meta: Metadata
-    drones: [str] = field(default_factory=list)
+    drones: List[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Validate Hub After creation."""
@@ -86,9 +86,9 @@ class Game:
     hubs: Dict[str, Hub] = field(default_factory=dict)
     net: Dict[str, Net] = field(default_factory=dict)
 
-    def all_hubs(self) -> Dict[str, dict]:
+    def all_hubs(self) -> Dict[str, Hub]:
         """Return all hubs structure including start and end """
-        res: Dict[str, dict] = dict(self.hubs)
+        res: Dict[str, Hub] = dict(self.hubs)
         if self.s_hub:
             res[self.s_hub.name] = self.s_hub
         if self.e_hub:
@@ -128,7 +128,7 @@ class Game:
             return False
         return True
 
-    def get_neighbors(self, hub_name: str) -> List[Tuple[Hub, Net]]:
+    def get_neighbors(self, hub_name: Optional[str]) -> List[Tuple[Hub, Net]]:
         """ get neighbors of a Hub"""
         neigbor = []
         if hub_name not in self.all_names():
@@ -142,7 +142,7 @@ class Game:
                 neigbor.append((all_hubs[item.name1], item))
         return neigbor
 
-    def get_network(self, origine, target) -> Net:
+    def get_network(self, origine: Hub, target: Hub) -> Optional[Net]:
         """Get network of the link between origine and target"""
         for ne, net in self.get_neighbors(origine.name):
             if ne.name == target.name:
@@ -156,11 +156,11 @@ class Drone:
     idx: int
     x: int
     y: int
-    path: Optional[Hub] = None
-    hub_name: str = None
-    next_hub: str = None
-    net: Net = None
+    path: Optional[List[str]] = None
+    hub_name: Optional[str] = ""
+    next_hub: Optional[str] = None
+    net: Optional[Net] = None
     speed: float = 1.01
     current_index: int = 0
     t: float = 0.0
-    visited: [str] = field(default_factory=list)
+    visited: List[str] = field(default_factory=list)
