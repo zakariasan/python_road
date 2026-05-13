@@ -48,8 +48,8 @@ def ft_update_drone(drone: Drone, game: Game) -> None:
     vx = (dx / dist) * drone.speed
     vy = (dy / dist) * drone.speed
 
-    drone.x += int(vx)
-    drone.y += int(vy)
+    drone.x += vx
+    drone.y += vy
 
 
 def ft_draw_drone(
@@ -107,10 +107,12 @@ def ft_sim(
             target.drones.append(f'D-{drone.idx}')
             drone.visited.append(origine.name)
             moves += 1
+            print(f'D{drone.idx}-{target.name} ', end='')
             if target.meta.zone == Zone.restricted:
                 turn = 2
             else:
                 turn = 1
+    print()
     if moves != 0:
         return turn
     return 0

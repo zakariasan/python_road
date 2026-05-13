@@ -154,13 +154,13 @@ class Game:
 class Drone:
     """Drone sculter"""
     idx: int
-    x: int
-    y: int
+    x: float
+    y: float
     path: Optional[List[str]] = None
     hub_name: Optional[str] = ""
     next_hub: Optional[str] = None
     net: Optional[Net] = None
-    speed: float = 1.01
+    speed: float = 0.01
     current_index: int = 0
     t: float = 0.0
     visited: List[str] = field(default_factory=list)

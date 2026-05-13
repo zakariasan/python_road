@@ -1,6 +1,5 @@
 .PHONY: install run debug clean lint lint-strict
 
-export PYGAME_HIDE_SUPPORT_PROMPT=1
 
 install:
 	pip3 install -r requirements.txt
