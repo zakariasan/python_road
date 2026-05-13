@@ -1,13 +1,15 @@
 .PHONY: install run debug clean lint lint-strict
 
+export PYGAME_HIDE_SUPPORT_PROMPT=1
+
 install:
-	pip install -r requirements.txt
+	pip3 install -r requirements.txt
 
 run:
-	python main.py 01_linear_path.txt
+	python main.py $(file)
 
 debug:
-	python -m pdb a_maze_ing.py config.txt
+	python -m pdb main.py $(file)
 
 clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} +

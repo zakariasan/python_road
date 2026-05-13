@@ -2,7 +2,7 @@ from models import Game, Drone, Hub, Zone
 from typing import List
 from ft_pathfinder import A_star
 from math import sqrt
-import pygame  # type: ignore
+import pygame
 from ft_config import HEIGHT, WIDTH, to_screen
 
 
@@ -109,6 +109,8 @@ def ft_sim(
             moves += 1
             if target.meta.zone == Zone.restricted:
                 turn = 2
+            else:
+                turn = 1
     if moves != 0:
         return turn
     return 0
