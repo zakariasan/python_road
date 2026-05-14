@@ -57,6 +57,8 @@ class Net:
     name2: str
     meta: Metadata
     usage: int = 0
+    x: float = 0
+    y: float = 0
 
     def __post_init__(self) -> None:
         """ Check the network """
@@ -75,6 +77,15 @@ class Net:
         """use the link"""
         if self and self.can_use():
             self.usage += 1
+
+    def stay_in(self, hub_a: Hub, hub_b: Hub) -> None:
+        """ stay in """
+        self.x = (hub_a.x + hub_b.x) / 2
+        self.y = (hub_a.y + hub_b.y) / 2
+
+    def get_name(self) -> str:
+        """Get name of the Network"""
+        return f'{self.name1}-{self.name2}'
 
 
 @dataclass
@@ -160,7 +171,11 @@ class Drone:
     hub_name: Optional[str] = ""
     next_hub: Optional[str] = None
     net: Optional[Net] = None
-    speed: float = 0.01
+    speed: float = 0.05
     current_index: int = 0
     t: float = 0.0
     visited: List[str] = field(default_factory=list)
+
+    def was_in(self, net: Net) -> bool:
+        """ check if the drone is in the middle"""
+        return self.x == net.x and self.y == net.y

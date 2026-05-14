@@ -2,13 +2,8 @@ from models import Game, Drone, Hub, Zone
 from typing import List
 from ft_pathfinder import A_star
 from math import sqrt
-import pygame
 from ft_config import HEIGHT, WIDTH, to_screen
-
-
-# def ft_build_simple_path(game: Game):
-#    """Build the simple path"""
-#    return game.get_neighbors(game.s_hub.name)
+import pygame
 
 
 def ft_setup_drones(game: Game) -> List[Drone]:
@@ -29,8 +24,10 @@ def ft_update_drone(drone: Drone, game: Game) -> None:
     """Move drone from hub to next one if it's possible"""
     if not drone.next_hub:
         return
-
-    target = game.all_hubs()[drone.next_hub]
+    if drone.next_hub in game.all_hubs():
+        target = game.all_hubs()[drone.next_hub]
+    else:
+        target = drone.net
 
     dx = target.x - drone.x
     dy = target.y - drone.y
@@ -38,12 +35,14 @@ def ft_update_drone(drone: Drone, game: Game) -> None:
     if dist <= drone.speed or (drone.x == target.x and drone.y == target.y):
         drone.x = target.x
         drone.y = target.y
+        if drone.next_hub not in game.all_hubs():
+            return
         drone.hub_name = target.name
         if drone.net:
             drone.net.usage -= 1
             drone.net = None
-        drone.next_hub = None
-        return
+            drone.next_hub = None
+            return
 
     vx = (dx / dist) * drone.speed
     vy = (dy / dist) * drone.speed
@@ -65,9 +64,8 @@ def ft_draw_drone(
 
 def all_drones_arrived(drones: List[Drone]) -> bool:
     for drone in drones:
-        if drone.next_hub is not None:
+        if drone.next_hub is not None and not drone.was_in(drone.net):
             return False
-
     return True
 
 
@@ -78,41 +76,55 @@ def ft_sim(
         bounds: tuple[int, int, int, int]) -> int:
     """Simulation goes here """
     moves = 0
-    turn = 1
     if game.e_hub is None:
         raise ValueError("Missing end hub")
+
     for drone in drones:
         if drone.hub_name is None:
             continue
-        where: Hub = game.all_hubs()[drone.hub_name]
-        to: Hub = game.e_hub
         if drone.hub_name and drone.hub_name == game.e_hub.name:
             continue
-        drone.path = A_star(game, where, to)
+
+        where: Hub = game.all_hubs()[drone.hub_name]
+        to: Hub = game.e_hub
+        # drone.path = A_star(game, where, to)
+
+        if not drone.path or len(drone.path) <= 1:
+            drone.path = A_star(game, where, to)
+            if len(drone.path) <= 1:
+                continue
+        # if len(drone.path) == 1:
+        #    to = game.all_hubs()[drone.path[0]]
+        # drone.path = A_star(game, where, to)
         if len(drone.path) > 1:
             origine: Hub = game.all_hubs()[drone.hub_name]
             target: Hub = game.all_hubs()[drone.path[1]]
-
-            if len(target.drones) >= target.meta.max_drones:
-                continue
             net = game.get_network(origine, target)
-            if not net or not net.can_use():
+            if not net or not net.can_use() and net != drone.net:
                 drone.next_hub = None
                 continue
-            drone.next_hub = drone.path[1]
+
             drone.net = net
+            if len(target.drones) >= target.meta.max_drones:
+                if origine.meta.zone != Zone.restricted or net.can_use():
+                    continue
+            if origine.meta.zone == Zone.restricted and not drone.was_in(net):
+                net.stay_in(origine, target)
+                drone.next_hub = net.get_name()
+            else:
+                drone.next_hub = drone.path[1]
+                drone.path.pop(0)
+                if origine.meta.zone == Zone.restricted:
+                    net.usage -= 2
             net.reserve()
             if f'D-{drone.idx}' in origine.drones:
                 origine.drones.remove(f'D-{drone.idx}')
-            target.drones.append(f'D-{drone.idx}')
+            if origine.meta.zone != Zone.restricted:
+                target.drones.append(f'D-{drone.idx}')
             drone.visited.append(origine.name)
             moves += 1
-            print(f'D{drone.idx}-{target.name} ', end='')
-            if target.meta.zone == Zone.restricted:
-                turn = 2
-            else:
-                turn = 1
-    print()
+            print(f'D{drone.idx}-{drone.next_hub} ', end='')
     if moves != 0:
-        return turn
+        print()
+        return 1
     return 0

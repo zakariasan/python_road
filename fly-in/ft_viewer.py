@@ -1,5 +1,11 @@
 """ Where you can see the Game of Drones """
-import pygame
+import sys
+try:
+    import pygame
+except ModuleNotFoundError:
+    print("Usage: make install")
+    sys.exit(1)
+
 from typing import Tuple, List, Optional
 from models import Zone, Game, Net, Drone, Hub
 from ft_config import WIDTH, HEIGHT, \
@@ -164,16 +170,17 @@ def run(game: Game) -> None:
     clock = pygame.time.Clock()
     drones: List[Drone] = ft_setup_drones(game)
     turns: int = 0
-#    step_turn = False
+    step_turn = False
+    steps = False 
     while running:
         screen.fill((30, 30, 30))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            # if event.type == pygame.KEYDOWN:
-                # if event.key == pygame.K_SPACE:
-                #    step_turn = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    step_turn = True
 
         header = header_font.render(
                 f"Number of drones : {game.nb_drones}", True, (0, 191, 255))
@@ -185,13 +192,14 @@ def run(game: Game) -> None:
         draw_hubs(screen, game, bounds, font)
 
         for drone in drones:
-            ft_update_drone(drone, game)
             ft_draw_drone(screen, drone, bounds)
+            ft_update_drone(drone, game)
 
-        # if step_turn:
-        if all_drones_arrived(drones):
-            turns += ft_sim(game, drones, screen, bounds)
-            # step_turn = False
+        steps= True
+        if step_turn or steps:
+            if all_drones_arrived(drones):
+                turns += ft_sim(game, drones, screen, bounds)
+            step_turn = False
 
         pygame.display.flip()
         clock.tick(60)

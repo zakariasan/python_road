@@ -1,5 +1,4 @@
 from models import Zone, Hub, Game
-from math import sqrt
 from typing import Optional, List, Dict
 
 
@@ -16,7 +15,7 @@ def move_cost(hub: Hub) -> float:
 
 def heuristic(a: Hub, b: Hub) -> float:
     """Calculate the probabily to get to the goal"""
-    return sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+    return abs((a.x - b.x)) + abs((a.y - b.y))
 
 
 def reconstruct_path(
@@ -43,9 +42,10 @@ def A_star(game: Game, start: Hub, end: Hub) -> list[str]:
     g_score = {start.name: 0.0}
     f_score = {start.name: heuristic(start, end)}
 
-    # blocked = False
+    blocked = []
+    blocked.append(start.name)
     while open_set:
-        current = min(open_set, key=lambda x: f_score[x])
+        current = min(open_set, key=lambda x: f_score.get(x, float('inf')))
         open_set.remove(current)
 
         if current == end.name:
@@ -57,8 +57,7 @@ def A_star(game: Game, start: Hub, end: Hub) -> list[str]:
 
             if n.name in visited:
                 continue
-            # if len(n.drones) >= n.meta.max_drones:
-            #    continue
+
             if n.meta.zone == Zone.blocked:
                 continue
             # if not net.can_use():
@@ -73,7 +72,14 @@ def A_star(game: Game, start: Hub, end: Hub) -> list[str]:
                 came_from[n.name] = current
                 if n.name not in open_set:
                     open_set.append(n.name)
-    # if blocked:
+            if len(n.drones) >= n.meta.max_drones:
+                blocked.append(n.name)
+                if n.name == end.name:
+                    return reconstruct_path(came_from, n.name)
+                continue
+    if len(blocked) == 2:
+        end = game.all_hubs()[blocked[1]]
+        return A_star(game, start, end)
     #    return reconstruct_path(came_from, current)
     return []
     # return reconstruct_path(came_from, current)

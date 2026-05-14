@@ -19,7 +19,7 @@ def main() -> None:
             game.s_hub.meta.max_drones = game.nb_drones
             game.e_hub.meta.max_drones = game.nb_drones
             run(game)
-        except (ParseError, ValidationError) as e:
+        except (ValueError, ParseError, ValidationError) as e:
             print(f'{e}')
 
 
