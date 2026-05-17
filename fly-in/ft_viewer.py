@@ -1,207 +1,257 @@
 """ Where you can see the Game of Drones """
 import sys
+import os
 try:
     import pygame
 except ModuleNotFoundError:
     print("Usage: make install")
     sys.exit(1)
 
-from typing import Tuple, List, Optional
-from models import Zone, Game, Net, Drone, Hub
-from ft_config import WIDTH, HEIGHT, \
-        NODE_RADIUS, BORDER_WIDTH, BORDER_COLORS, \
-        RECT_SIZE, to_screen
-from ft_sim import ft_sim, ft_setup_drones, \
-        ft_draw_drone, ft_update_drone, all_drones_arrived
+from models import Zone, Drone, Hub
+from ft_config import Config
+from ft_sim import Sim
 
 
-def get_zone_color(
-        zone: Zone,
-        color: Optional[str]
-        ) -> tuple[int, int, int]:
-    """Return the Hub color accrding the ZOne or color """
-    c = (170, 51, 106)
-    if color:
-        try:
-            c_s = pygame.Color(color)
-            c = (c_s.r, c_s.g, c_s.b)
-        except ValueError:
-            pass
-    return c
-    # return ZONE_COLORS.get(zone, (165, 42, 42))
+class Viewer:
+    """Window of the Fly-in visualization see the world"""
 
+    def __init__(self, sim: Sim, config: Config) -> None:
+        """Creating the window of fly-in"""
+        self.sim = sim
+        self.game = sim.game
+        self.cfg = config
+        self.running = True
+        self.clock = pygame.time.Clock()
 
-def get_border_color(zone: Zone) -> tuple[int, int, int]:
-    return BORDER_COLORS.get(zone, (55, 55, 55))
+        self.paused = True
+        self.steps = False
+        pygame.init()
+        os.system('clear')
 
+        self.screen: pygame.Surface = pygame.display.set_mode((
+            self.cfg.WIDTH,
+            self.cfg.HEIGHT))
+        pygame.display.set_caption("Fly-in Visualizer")
 
-def get_bounds(game: Game) -> Tuple[int, int, int, int]:
-    """ get max and min corrdinates """
-    hubs = game.all_hubs().values()
-    x = [h.x for h in hubs]
-    y = [h.y for h in hubs]
-    return min(x), max(x), min(y), max(y)
+        self.msg_font = pygame.font.SysFont(None, 38)
+        self.font = pygame.font.SysFont(None, 20)
+        self.drone_font = pygame.font.SysFont(None, 15)
+        self.header_font = pygame.font.SysFont(None, 64)
 
+    def draw_node(
+            self,
+            hub: Hub,
+            x: int,
+            y: int,
+            color: tuple[int, int, int],
+            b_color: tuple[int, int, int]
+            ) -> None:
+        """Draw a hub with shape + border depending on zone"""
 
-def get_link_color(net: Net) -> Tuple[int, int, int]:
-    """Color based on link capacity."""
-    if net.meta.max_link_capacity > 1:
-        return (0, 200, 255)
-    return (180, 180, 180)
+        zone = hub.meta.zone
 
+        if zone == Zone.restricted:
+            rect = pygame.Rect(
+                x - self.cfg.RECT_SIZE / 2,
+                y - self.cfg.RECT_SIZE / 2,
+                self.cfg.RECT_SIZE,
+                self.cfg.RECT_SIZE
+            )
+            pygame.draw.rect(self.screen, color, rect)
+            if len(hub.drones) < 1:
+                pygame.draw.rect(
+                        self.screen, b_color, rect, self.cfg.BORDER_WIDTH)
+        elif zone == Zone.blocked:
+            rect = pygame.Rect(
+                    x - self.cfg.RECT_SIZE / 2,
+                    y - self.cfg.RECT_SIZE / 2,
+                    self.cfg.RECT_SIZE,
+                    self.cfg.RECT_SIZE
+                    )
+            pygame.draw.rect(self.screen, color, rect)
 
-def draw_node(
-        screen: pygame.Surface,
-        hub: Hub,
-        x: int,
-        y: int,
-        color: tuple[int, int, int],
-        b_color: tuple[int, int, int]
-        ) -> None:
-    """Draw a hub with shape + border depending on zone"""
+            if len(hub.drones) < 1:
+                pygame.draw.rect(
+                        self.screen, color, rect, self.cfg.BORDER_WIDTH)
+            pygame.draw.line(
+                    self.screen,
+                    b_color,
+                    rect.topleft,
+                    rect.bottomright,
+                    4
+                    )
+            pygame.draw.line(
+                    self.screen,
+                    b_color,
+                    rect.topright,
+                    rect.bottomleft,
+                    4
+                    )
 
-    zone = hub.meta.zone
-
-    if zone == Zone.restricted:
-        rect = pygame.Rect(
-            x - RECT_SIZE / 2,
-            y - RECT_SIZE / 2,
-            RECT_SIZE,
-            RECT_SIZE
-        )
-
-        pygame.draw.rect(screen, color, rect)
-        pygame.draw.rect(screen, b_color, rect, BORDER_WIDTH)
-    elif zone == Zone.blocked:
-        rect = pygame.Rect(
-                x - RECT_SIZE / 2,
-                y - RECT_SIZE / 2,
-                RECT_SIZE,
-                RECT_SIZE
-                )
-        pygame.draw.rect(screen, color, rect)
-        pygame.draw.rect(screen, color, rect, BORDER_WIDTH)
-        pygame.draw.line(screen, b_color, rect.topleft, rect.bottomright, 4)
-        pygame.draw.line(screen, b_color, rect.topright, rect.bottomleft, 4)
-
-    else:
-        pygame.draw.circle(screen, color, (x, y), NODE_RADIUS)
-        pygame.draw.circle(screen, b_color, (x, y),
-                           NODE_RADIUS, BORDER_WIDTH)
-
-
-def draw_hubs(
-        screen: pygame.Surface,
-        game: Game,
-        bounds: tuple[int, int, int, int],
-        font: pygame.font.Font
-        ) -> None:
-    """
-    Draw Each Hub with it;s Credentials
-
-    Args:
-        screen: where you can see the world.
-        game: object has the world.
-        bounds: bounds of the object.
-        font: type of the text.
-    """
-    min_x, max_x, min_y, max_y = bounds
-    pr = 0
-    for name, hub in game.all_hubs().items():
-        x = to_screen(hub.x, min_x, max_x, WIDTH)
-        y = to_screen(hub.y, min_y, max_y, HEIGHT)
-
-        color: tuple[int, int, int] = get_zone_color(
-                hub.meta.zone,
-                hub.meta.color)
-
-        b_color = get_border_color(hub.meta.zone)
-        draw_node(screen, hub, x, y, color, b_color)
-
-        nb = hub.meta.max_drones
-        if pr % 2 == 0:
-            text = font.render(f'{name}:{nb}', True, (255, 255, 255))
-            screen.blit(text, (x, y - 45))
         else:
-            text = font.render(f'{name}:{nb}', True, (255, 255, 255))
-            screen.blit(text, (x, y + 45))
-        pr += 1
+            pygame.draw.circle(
+                    self.screen,
+                    color,
+                    (x, y),
+                    self.cfg.NODE_RADIUS
+                    )
+            if not len(hub.drones) >= 1:
+                pygame.draw.circle(
+                        self.screen,
+                        b_color,
+                        (x, y),
+                        self.cfg.NODE_RADIUS,
+                        self.cfg.BORDER_WIDTH)
 
+    def draw_hubs(self) -> None:
+        """
+        Draw Each Hub with it;s Credentials
+        """
+        pr = 0
+        for name, hub in self.game.all_hubs().items():
+            x = self.cfg.to_screen_x(hub.x)
+            y = self.cfg.to_screen_y(hub.y)
 
-def draw_connections(
-        screen: pygame.Surface,
-        game: Game,
-        bounds: tuple[int, int, int, int]
-        ) -> None:
-    min_x, max_x, min_y, max_y = bounds
-    hubs = game.all_hubs()
+            color: tuple[int, int, int] = self.cfg.get_zone_color(
+                    hub.meta.zone,
+                    hub.meta.color)
 
-    for net in game.net.values():
-        h1 = hubs[net.name1]
-        h2 = hubs[net.name2]
+            b_color = self.cfg.get_border_color(hub.meta.zone)
+            self.draw_node(hub, x, y, color, b_color)
 
-        x1 = to_screen(h1.x, min_x, max_x, WIDTH)
-        y1 = to_screen(h1.y, min_y, max_y, HEIGHT)
+            nb = hub.meta.max_drones
+            offset = -40 if pr % 2 == 0 else 40
+            off_y = 8 if pr % 3 == 0 else 0
+            text = self.font.render(f'{name}:{nb}', True, (255, 255, 255))
+            self.screen.blit(text, (x - 30, y - offset + off_y))
+            pr += 1
 
-        x2 = to_screen(h2.x, min_x, max_x, WIDTH)
-        y2 = to_screen(h2.y, min_y, max_y, HEIGHT)
+    def draw_connections(self) -> None:
+        """ Draw Connection between hubs depend on max_link """
+        hubs = self.game.all_hubs()
 
-        pygame.draw.line(
-            screen,
-            get_link_color(net),
-            (x1, y1),
-            (x2, y2),
-            4
-        )
+        for net in self.game.net.values():
+            h1 = hubs[net.name1]
+            h2 = hubs[net.name2]
 
+            x1 = self.cfg.to_screen_x(h1.x)
+            y1 = self.cfg.to_screen_y(h1.y)
+            x2 = self.cfg.to_screen_x(h2.x)
+            y2 = self.cfg.to_screen_y(h2.y)
 
-def run(game: Game) -> None:
-    """Run the simulation with pygame"""
+            pygame.draw.line(
+                self.screen,
+                self.cfg.get_link_color(net),
+                (x1, y1),
+                (x2, y2),
+                4
+                )
 
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Fly-in Visualizer")
+    def display_msg(self, msg: str) -> None:
+        """ display your msg simply"""
+        msg = self.msg_font.render(msg, True, (100, 255, 180))
+        self.screen.blit(
+                msg,
+                (self.cfg.WIDTH / 2 - 320, self.cfg.HEIGHT - 40))
 
-    font = pygame.font.SysFont(None, 20)
-    header_font = pygame.font.SysFont(None, 64)
-    bounds = get_bounds(game)
+    def ft_draw_drone(self, drone: Drone) -> None:
+        """Draw a drone shape"""
+        x = self.cfg.to_screen_x(drone.x)
+        y = self.cfg.to_screen_y(drone.y)
+        pygame.draw.circle(self.screen, (255, 255, 255), (int(x), int(y)), 10)
+        nbr = self.drone_font.render(str(drone.idx), True, (0, 0, 0))
+        self.screen.blit(
+                nbr,
+                (int(x) - nbr.get_width() / 2, int(y) - nbr.get_height() / 2))
 
-    running = True
-    clock = pygame.time.Clock()
-    drones: List[Drone] = ft_setup_drones(game)
-    turns: int = 0
-    step_turn = False
-    steps = False 
-    while running:
-        screen.fill((30, 30, 30))
+    def game_menu(self) -> None:
+        """a box menu containe simulation directions"""
+        keys = [
+                '<x>  close the Window',
+                '<r> reset mode',
+                '<p>  pause mode / resume',
+                '<s>  step mode',
+                '<SPACE> next in step mode',
+                ]
+        pad = 10
+        line_h = 20
+        box_w = 200
+        box_h = pad * 2 + len(keys) * line_h
+        box_y = self.cfg.HEIGHT - box_h - 20
+        box_x = self.cfg.WIDTH - box_w - 20
+        # bg = pygame.Surface((box_x, box_y), pygame.SRCALPHA)
+        # bg.fill((0, 0, 0, 150))
+        # self.screen.blit(bg, (box_x, box_y, box_w, box_w))
+        pygame.draw.rect(
+                self.screen, (80, 40, 80), (box_x, box_y, box_w, box_h), 3)
+        for i, item in enumerate(keys):
+            txt = self.font.render(item, True, (180, 180, 180))
+            self.screen.blit(txt, (box_x + pad, box_y + pad + i * line_h))
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    step_turn = True
+    def ft_display_env(self) -> None:
+        """ Display content in the window """
+        self.game_menu()
+        header = self.header_font.render(
+                    f"Number of drones : {self.game.nb_drones}",
+                    True,
+                    (0, 191, 255))
+        turn_calc = self.header_font.render(
+                    f"Number of turnes: {self.sim.turns}",
+                    True,
+                    (0, 191, 255))
+        self.screen.blit(header, (10, 5))
+        self.screen.blit(turn_calc, (self.cfg.WIDTH - 460, 5))
+        self.draw_connections()
+        self.draw_hubs()
 
-        header = header_font.render(
-                f"Number of drones : {game.nb_drones}", True, (0, 191, 255))
-        turn_calc = header_font.render(
-                f"Number of turnes: {turns}", True, (0, 190, 255))
-        screen.blit(header, (10, 5))
-        screen.blit(turn_calc, (WIDTH - 800, 5))
-        draw_connections(screen, game, bounds)
-        draw_hubs(screen, game, bounds, font)
+        for drone in self.sim.drones:
+            self.ft_draw_drone(drone)
+            if not self.paused:
+                self.sim.ft_update_drone(drone)
 
-        for drone in drones:
-            ft_draw_drone(screen, drone, bounds)
-            ft_update_drone(drone, game)
+        if not self.paused and not self.steps:
+            if self.sim.all_drones_arrived():
+                self.sim.step()
 
-        steps= True
-        if step_turn or steps:
-            if all_drones_arrived(drones):
-                turns += ft_sim(game, drones, screen, bounds)
-            step_turn = False
-
+        if self.paused and not self.steps:
+            self.display_msg("PAUSED MODE (<p> to resume)")
+        elif self.steps:
+            self.display_msg(
+                    "STEP MODE (<SPACE> to advance | <s> to exit)")
+        elif self.sim.sim_done():
+            self.display_msg(
+                    "Simulation Done all drones arrived successfully in "
+                    +
+                    f"{self.sim.turns} turn.")
+        else:
+            self.display_msg("press <p> to pause <s> to slow down")
         pygame.display.flip()
-        clock.tick(60)
+        self.clock.tick(60)
 
-    pygame.quit()
+    def run(self) -> None:
+        """Run the simulation with pygame"""
+
+        while self.running:
+            self.screen.fill((30, 30, 30))
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        self.sim.reset()
+                        self.paused = True
+                        self.steps = False
+                    if event.key == pygame.K_p:
+                        self.paused = not self.paused
+                    if event.key == pygame.K_s:
+                        self.steps = not self.steps
+                        self.paused = False
+                    if event.key == pygame.K_SPACE and self.steps:
+                        if self.sim.all_drones_arrived():
+                            self.sim.step()
+                    if event.type == pygame.K_x:
+                        self.running = False
+            self.ft_display_env()
+
+        pygame.quit()

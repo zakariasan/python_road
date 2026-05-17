@@ -1,27 +1,55 @@
 import sys
-from ft_valide_file import ft_valide_file
+import os
+from ft_parser import Parser
 from errors import ParseError, ValidationError
-from ft_viewer import run
+from ft_viewer import Viewer
+from ft_config import Config
+from ft_sim import Sim
 
 
-def main() -> None:
-    """ Starting the Game of fly-in """
+class FlyIn:
+    """Starting from her flying there"""
 
-    if len(sys.argv) != 2:
-        print("Usage: python path_file.txt", sys.argv)
+    def __init__(self):
+        """starting point """
+        self.fly_in()
 
-    else:
+    @staticmethod
+    def clear_terminal() -> None:
+        """Clear the output of terminal"""
+        if os.name == 'posix':
+            os.system('clear')
 
+    @staticmethod
+    def ft_get_file() -> str:
+        """first check the file format"""
+        if len(sys.argv) != 2:
+            raise ValueError("Usage: python main.py path_file.txt")
+        filename = sys.argv[1]
+        if not filename.endswith('.txt'):
+            raise ValueError("File must be a .txt")
+        return filename
+
+    def fly_in(self) -> None:
+        """ Starting the Game of fly-in """
         try:
-            game = ft_valide_file(sys.argv[1])
+            filename = self.ft_get_file()
+            parser = Parser(filename)
+            game = parser.ft_parse()
             if game.s_hub is None or game.e_hub is None:
                 raise ValidationError("Missing start or End")
             game.s_hub.meta.max_drones = game.nb_drones
             game.e_hub.meta.max_drones = game.nb_drones
-            run(game)
+            config = Config(game)
+            sim = Sim(game)
+            viewer = Viewer(sim, config)
+            viewer.run()
         except (ValueError, ParseError, ValidationError) as e:
             print(f'{e}')
+        except KeyboardInterrupt:
+            self.clear_terminal()
+            print('Exit.^_^')
 
 
 if __name__ == '__main__':
-    main()
+    FlyIn()

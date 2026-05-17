@@ -46,8 +46,6 @@ class Hub:
             raise ValidationError("Hub name cannot contain dashes.")
         if not isinstance(self.x, int) or not isinstance(self.y, int):
             raise ValidationError("Hub x and y must be integer.")
-        if self.meta is None:
-            self.meta = Metadata()
 
 
 @dataclass
@@ -66,8 +64,6 @@ class Net:
             raise ParseError("Connection Hub names canot be empty.")
         if self.name1 == self.name2:
             raise ValidationError("Connection cannot be the same hub.")
-        if self.meta is None:
-            self.meta = Metadata()
 
     def can_use(self) -> bool:
         """Check the netwrok is free or no"""
@@ -75,7 +71,7 @@ class Net:
 
     def reserve(self) -> None:
         """use the link"""
-        if self and self.can_use():
+        if self.can_use():
             self.usage += 1
 
     def stay_in(self, hub_a: Hub, hub_b: Hub) -> None:
@@ -171,11 +167,9 @@ class Drone:
     hub_name: Optional[str] = ""
     next_hub: Optional[str] = None
     net: Optional[Net] = None
-    speed: float = 0.05
-    current_index: int = 0
-    t: float = 0.0
+    speed: float = 0.04
     visited: List[str] = field(default_factory=list)
 
     def was_in(self, net: Net) -> bool:
         """ check if the drone is in the middle"""
-        return self.x == net.x and self.y == net.y
+        return abs(self.x - net.x) <= 0.0001 and abs(self.y - net.y) <= 0.0001
