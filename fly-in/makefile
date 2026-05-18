@@ -1,11 +1,10 @@
 .PHONY: install run debug clean lint lint-strict
 
+install:
+	pip install -r requirements.txt
 
 run:
 	python main.py $(file)
-
-install:
-	pip install -r requirements.txt
 
 debug:
 	python -m pdb main.py $(file)

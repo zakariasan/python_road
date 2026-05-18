@@ -19,8 +19,8 @@ class Config:
         self.BORDER_WIDTH: int = 5
         self.RECT_SIZE: int = 35
 
-        self.START_COLOR: Tuple = (0, 255, 0)
-        self.END_COLOR: Tuple = (255, 255, 0)
+        self.START_COLOR: Tuple[int, int, int] = (0, 255, 0)
+        self.END_COLOR: Tuple[int, int, int] = (255, 255, 0)
 
         bounds = self.get_bounds()
         self.MIN_X, self.MAX_X, self.MIN_Y, self.MAX_Y = bounds

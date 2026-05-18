@@ -1,5 +1,5 @@
-from models import Game, Drone, Hub, Zone
-from typing import List
+from models import Game, Drone, Hub, Zone, Net
+from typing import List, Union
 from ft_pathfinder import Pathfinder
 from math import sqrt
 
@@ -31,11 +31,14 @@ class Sim:
 
     def ft_update_drone(self, drone: Drone) -> None:
         """Move drone from hub to next one if it's possible"""
+        target: Union[Hub, Net]
         if not drone.next_hub:
             return
         if drone.next_hub in self.game.all_hubs():
             target = self.game.all_hubs()[drone.next_hub]
         else:
+            if drone.net is None:
+                return
             target = drone.net
 
         dx = target.x - drone.x
@@ -47,7 +50,8 @@ class Sim:
             drone.y = target.y
             if drone.next_hub not in self.game.all_hubs():
                 return
-            drone.hub_name = target.name
+            target_hub: Hub = self.game.all_hubs()[drone.next_hub]
+            drone.hub_name = target_hub.name
             if drone.net:
                 drone.net.usage -= 1
                 drone.net = None
@@ -70,7 +74,7 @@ class Sim:
     def sim_done(self) -> bool:
         """ check if all drones are in the e_hub"""
         for drone in self.drones:
-            if drone.hub_name != self.game.e_hub.name:
+            if self.game.e_hub and drone.hub_name != self.game.e_hub.name:
                 return False
         return True
 
@@ -78,9 +82,9 @@ class Sim:
         """ check if the drone lands or still fly in"""
         if drone.hub_name is None:
             return True
-        if drone.hub_name == self.game.e_hub.name:
-            return True
-        return False
+        if self.game.e_hub is None:
+            return False
+        return drone.hub_name == self.game.e_hub.name
 
     def step(self) -> int:
         """Simulation goes here """
@@ -99,6 +103,8 @@ class Sim:
     def plane_drone(self, drone: Drone) -> bool:
         """ Compute the path of a drone from it's xand y to the end"""
 
+        if drone.hub_name is None or self.game.e_hub is None:
+            return False
         origine: Hub = self.game.all_hubs()[drone.hub_name]
         end_p: Hub = self.game.e_hub
 
@@ -140,6 +146,10 @@ class Sim:
         for hub in self.game.all_hubs().values():
             hub.drones.clear()
 
+        for net in self.game.net.values():
+            net.usage = 0
+
         self.drones.clear()
         self.turns = 0
         self.ft_setup_drones()
+        print('<-----------------Again------------------->')

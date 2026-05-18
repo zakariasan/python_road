@@ -27,6 +27,9 @@ class Viewer:
         self.steps = False
         pygame.init()
         os.system('clear')
+        print('<------------------------------------>')
+        print('<--------------FLY-IN---------------->')
+        print('<------------------------------------>')
 
         self.screen: pygame.Surface = pygame.display.set_mode((
             self.cfg.WIDTH,
@@ -58,7 +61,7 @@ class Viewer:
                 self.cfg.RECT_SIZE
             )
             pygame.draw.rect(self.screen, color, rect)
-            if len(hub.drones) < 1:
+            if len(hub.drones) >= 1:
                 pygame.draw.rect(
                         self.screen, b_color, rect, self.cfg.BORDER_WIDTH)
         elif zone == Zone.blocked:
@@ -70,7 +73,7 @@ class Viewer:
                     )
             pygame.draw.rect(self.screen, color, rect)
 
-            if len(hub.drones) < 1:
+            if len(hub.drones) >= 1:
                 pygame.draw.rect(
                         self.screen, color, rect, self.cfg.BORDER_WIDTH)
             pygame.draw.line(
@@ -149,9 +152,10 @@ class Viewer:
 
     def display_msg(self, msg: str) -> None:
         """ display your msg simply"""
-        msg = self.msg_font.render(msg, True, (100, 255, 180))
+        msg_r: pygame.Surface = self.msg_font.render(
+                msg, True, (100, 255, 180))
         self.screen.blit(
-                msg,
+                msg_r,
                 (self.cfg.WIDTH / 2 - 320, self.cfg.HEIGHT - 40))
 
     def ft_draw_drone(self, drone: Drone) -> None:
@@ -179,9 +183,6 @@ class Viewer:
         box_h = pad * 2 + len(keys) * line_h
         box_y = self.cfg.HEIGHT - box_h - 20
         box_x = self.cfg.WIDTH - box_w - 20
-        # bg = pygame.Surface((box_x, box_y), pygame.SRCALPHA)
-        # bg.fill((0, 0, 0, 150))
-        # self.screen.blit(bg, (box_x, box_y, box_w, box_w))
         pygame.draw.rect(
                 self.screen, (80, 40, 80), (box_x, box_y, box_w, box_h), 3)
         for i, item in enumerate(keys):
@@ -250,7 +251,7 @@ class Viewer:
                     if event.key == pygame.K_SPACE and self.steps:
                         if self.sim.all_drones_arrived():
                             self.sim.step()
-                    if event.type == pygame.K_x:
+                    if event.key == pygame.K_x:
                         self.running = False
             self.ft_display_env()
 

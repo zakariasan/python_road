@@ -148,7 +148,12 @@ class Parser:
                 raise ParseError("nbr of drones must be integer")
             nbr: int = int(val)
             if nbr <= 0:
-                raise ValidationError("Number of drones must be positive int")
+                raise ValidationError("Number of drones must be positive int.")
+            if nbr > 99995:
+                raise ValidationError(
+                        "Too much drones you memo eated by pygame and drones."
+                        +
+                        "tooooo slowwwww")
             self.game.nb_drones = nbr
         else:
             raise ParseError("Duplicated nbr of drones.")

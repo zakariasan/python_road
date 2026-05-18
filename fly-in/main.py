@@ -10,7 +10,7 @@ from ft_sim import Sim
 class FlyIn:
     """Starting from her flying there"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """starting point """
         self.fly_in()
 
@@ -24,7 +24,10 @@ class FlyIn:
     def ft_get_file() -> str:
         """first check the file format"""
         if len(sys.argv) != 2:
-            raise ValueError("Usage: python main.py path_file.txt")
+            raise ValueError(
+                    "Usage: python main.py path_file.txt \n"
+                    +
+                    "or Usage: make file=path_file.txt")
         filename = sys.argv[1]
         if not filename.endswith('.txt'):
             raise ValueError("File must be a .txt")

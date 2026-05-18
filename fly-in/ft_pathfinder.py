@@ -8,7 +8,6 @@ class Pathfinder:
     def __init__(self, game: Game) -> None:
         """ get started with data of the environ"""
         self.game = game
-        # Pathfinder.last_path = []
 
     @staticmethod
     def move_cost(hub: Hub) -> float:
@@ -24,7 +23,7 @@ class Pathfinder:
     @staticmethod
     def heuristic(a: Hub, b: Hub) -> float:
         """Calculate the probabily to get to the goal"""
-        return abs((a.x - b.x)) + abs((a.y - b.y))
+        return (abs((a.x - b.x)) + abs((a.y - b.y)))
 
     @staticmethod
     def reconstruct_path(
@@ -72,14 +71,15 @@ class Pathfinder:
                     cost -= 0.01
 
                 if len(n.drones) >= n.meta.max_drones:
-                    cost += 2.5
+                    cost += 1.2
                 new_g_score = g_score[current] + cost
 
                 if n.name not in g_score or new_g_score < g_score[n.name]:
 
                     g_score[n.name] = new_g_score
 
-                    f_score[n.name] = new_g_score + self.heuristic(n, end)
+                    f_score[n.name] = new_g_score
+                    # + self.heuristic(n, end)
                     came_from[n.name] = current
                     if n.name not in open_set:
                         open_set.append(n.name)
@@ -88,7 +88,6 @@ class Pathfinder:
                     blocked.append(n.name)
                     if n.name == end.name:
                         return self.reconstruct_path(came_from, n.name)
-                        # f_score[n.name] += 2
                     continue
 
         if len(blocked) == 2:
