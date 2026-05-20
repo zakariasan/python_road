@@ -29,7 +29,7 @@ class Sim:
             self.game.s_hub.drones.append(f'D-{self.drones[i].idx}')
         return self.drones
 
-    def ft_update_drone(self, drone: Drone) -> None:
+    def ft_update_drone(self, drone: Drone, dt) -> None:
         """Move drone from hub to next one if it's possible"""
         target: Union[Hub, Net]
         if not drone.next_hub:
@@ -44,6 +44,7 @@ class Sim:
         dx = target.x - drone.x
         dy = target.y - drone.y
         dist = sqrt(dx * dx + dy * dy)
+        move_step = drone.speed * dt
         if dist <= drone.speed or\
                 (drone.x == target.x and drone.y == target.y):
             drone.x = target.x
@@ -108,8 +109,8 @@ class Sim:
         origine: Hub = self.game.all_hubs()[drone.hub_name]
         end_p: Hub = self.game.e_hub
 
-        # if not drone.path or len(drone.path) <= 1:
-        drone.path = self.pathfinder.A_star(origine, end_p)
+        if drone.next_hub is None:
+            drone.path = self.pathfinder.A_star(origine, end_p)
         if len(drone.path) <= 1:
             return False
         target: Hub = self.game.all_hubs()[drone.path[1]]
@@ -119,11 +120,12 @@ class Sim:
             return False
 
         drone.net = net
+        net.stay_in(origine, target)
         if len(target.drones) >= target.meta.max_drones:
             if origine.meta.zone != Zone.restricted or net.can_use():
                 return False
-        if origine.meta.zone == Zone.restricted and not drone.was_in(net):
-            net.stay_in(origine, target)
+
+        if target.meta.zone == Zone.restricted and not drone.was_in(net):
             drone.next_hub = net.get_name()
         else:
             drone.next_hub = drone.path[1]
@@ -133,7 +135,9 @@ class Sim:
         net.reserve()
         if f'D-{drone.idx}' in origine.drones:
             origine.drones.remove(f'D-{drone.idx}')
-        if origine.meta.zone != Zone.restricted:
+        if target.meta.zone == Zone.restricted and drone.was_in(net):
+            target.drones.append(f'D-{drone.idx}')
+        elif target.meta.zone != Zone.restricted:
             target.drones.append(f'D-{drone.idx}')
 
         drone.visited.append(origine.name)

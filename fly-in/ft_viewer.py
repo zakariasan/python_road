@@ -22,8 +22,9 @@ class Viewer:
         self.cfg = config
         self.running = True
         self.clock = pygame.time.Clock()
+        self.dt = self.clock.tick(60) / 1000.0
 
-        self.paused = True
+        self.paused = False
         self.steps = False
         pygame.init()
         os.system('clear')
@@ -208,7 +209,7 @@ class Viewer:
         for drone in self.sim.drones:
             self.ft_draw_drone(drone)
             if not self.paused:
-                self.sim.ft_update_drone(drone)
+                self.sim.ft_update_drone(drone, self.dt)
 
         if not self.paused and not self.steps:
             if self.sim.all_drones_arrived():

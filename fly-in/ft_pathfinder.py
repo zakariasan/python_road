@@ -14,11 +14,11 @@ class Pathfinder:
         """Return the cost of the Hub"""
         costs = {
                 Zone.normal: 1,
-                Zone.priority: 1,
+                Zone.priority: 0.8,
                 Zone.restricted: 2,
                 Zone.blocked: float('inf')
                 }
-        return costs.get(hub.meta.zone, 1)
+        return costs.get(hub.meta.zone, float('inf'))
 
     @staticmethod
     def heuristic(a: Hub, b: Hub) -> float:
@@ -67,11 +67,11 @@ class Pathfinder:
                     continue
                 cost = self.move_cost(n)
 
-                if n.meta.zone == Zone.priority:
-                    cost -= 0.01
+                # if n.meta.zone == Zone.priority:
+                #    cost -= 0.01
 
                 if len(n.drones) >= n.meta.max_drones:
-                    cost += 1.2
+                    cost += 0.8
                 new_g_score = g_score[current] + cost
 
                 if n.name not in g_score or new_g_score < g_score[n.name]:

@@ -167,9 +167,9 @@ class Drone:
     hub_name: Optional[str] = ""
     next_hub: Optional[str] = None
     net: Optional[Net] = None
-    speed: float = 0.04
+    speed: float = 0.055
     visited: List[str] = field(default_factory=list)
 
     def was_in(self, net: Net) -> bool:
         """ check if the drone is in the middle"""
-        return abs(self.x - net.x) <= 0.0001 and abs(self.y - net.y) <= 0.0001
+        return abs(self.x - net.x) <= 0.001 and abs(self.y - net.y) <= 0.001
