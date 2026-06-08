@@ -1,5 +1,5 @@
 from models import Game, Drone, Hub, Zone, Net
-from typing import List, Union
+from typing import List, Union, Optional
 from ft_pathfinder import Pathfinder
 from math import sqrt
 
@@ -29,7 +29,7 @@ class Sim:
             self.game.s_hub.drones.append(f'D-{self.drones[i].idx}')
         return self.drones
 
-    def ft_update_drone(self, drone: Drone, dt) -> None:
+    def ft_update_drone(self, drone: Drone, dt: float) -> None:
         """Move drone from hub to next one if it's possible"""
         target: Union[Hub, Net]
         if not drone.next_hub:
@@ -44,9 +44,8 @@ class Sim:
         dx = target.x - drone.x
         dy = target.y - drone.y
         dist = sqrt(dx * dx + dy * dy)
-        move_step = drone.speed * dt
-        if dist <= drone.speed or\
-                (drone.x == target.x and drone.y == target.y):
+        dist_step = drone.speed * dt
+        if dist <= dist_step:
             drone.x = target.x
             drone.y = target.y
             if drone.next_hub not in self.game.all_hubs():
@@ -56,13 +55,13 @@ class Sim:
             if drone.net:
                 drone.net.usage -= 1
                 drone.net = None
-                drone.next_hub = None
-                return
+            drone.next_hub = None
+            return
 
         vx = (dx / dist) * drone.speed
         vy = (dy / dist) * drone.speed
-        drone.x += vx
-        drone.y += vy
+        drone.x += vx * dt
+        drone.y += vy * dt
 
     def all_drones_arrived(self) -> bool:
         """ Check if drones are moving around the map"""
@@ -111,10 +110,10 @@ class Sim:
 
         if drone.next_hub is None:
             drone.path = self.pathfinder.A_star(origine, end_p)
-        if len(drone.path) <= 1:
+        if drone.path is None or len(drone.path) <= 1:
             return False
         target: Hub = self.game.all_hubs()[drone.path[1]]
-        net = self.game.get_network(origine, target)
+        net: Optional[Net] = self.game.get_network(origine, target)
         if (not net) or (not net.can_use() and net != drone.net):
             drone.next_hub = None
             return False

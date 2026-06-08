@@ -24,13 +24,13 @@ class Viewer:
         self.clock = pygame.time.Clock()
         self.dt = self.clock.tick(60) / 1000.0
 
-        self.paused = False
+        self.paused = not True
         self.steps = False
         pygame.init()
         os.system('clear')
-        print('<------------------------------------>')
-        print('<--------------FLY-IN---------------->')
-        print('<------------------------------------>')
+        print('<------------------------------------------>')
+        print('<--------------[  FLY-IN  ]---------------->')
+        print('<------------------------------------------>')
 
         self.screen: pygame.Surface = pygame.display.set_mode((
             self.cfg.WIDTH,

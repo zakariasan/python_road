@@ -143,7 +143,7 @@ class Parser:
         Raises:
             val is not a number
         """
-        if self.game.nb_drones == 0:
+        if self.game.nb_drones == 0: 
             if not val.isdigit():
                 raise ParseError("nbr of drones must be integer")
             nbr: int = int(val)
@@ -207,6 +207,8 @@ class Parser:
 
                     if value.startswith("#") or value == "":
                         continue
+                    if '#' in value:
+                        value = value.split('#', 1)[0].strip()
                     if ":" not in value:
                         raise ParseError(f"Line {i}: Invalide Structure.")
                     try:
