@@ -38,10 +38,10 @@ class Parser:
 
         if k1 in self.game.net or k2 in self.game.net:
             raise ValueError("Duplicated network")
-        meta_data = self.ft_parse_meta(meta)
+        meta_data = self.ft_parse_meta(meta, 'connection')
         self.game.net[k1] = Net(n1, n2, meta_data)
 
-    def ft_parse_meta(self, meta_d: Optional[str]) -> Metadata:
+    def ft_parse_meta(self, meta_d: Optional[str], parent: str) -> Metadata:
         """parse meta data [zone='4 types' color=None ]
 
         Args:
@@ -59,12 +59,12 @@ class Parser:
         if not meta:
             return Metadata()
 
-        ele: list[str] = [
+        if parent == 'hub':
+            ele: list[str] = [
                     "zone",
                     "color",
                     "max_drones",
-                    "max_link_capacity"
-                    ]
+                    ] if parent == 'hub' else ["max_link_capacity"]
         meta_obj = Metadata()
         for item in meta.split():
             if "=" not in item:
@@ -122,7 +122,7 @@ class Parser:
 
         if (x, y) in self.game.all_coords():
             raise ValidationError(f"Duplicated coor({x},{y})")
-        meta_data: Metadata = self.ft_parse_meta(meta)
+        meta_data: Metadata = self.ft_parse_meta(meta, 'hub')
         hub: Hub = Hub(name, x, y, meta_data)
 
         if key == "start_hub":
@@ -143,7 +143,7 @@ class Parser:
         Raises:
             val is not a number
         """
-        if self.game.nb_drones == 0: 
+        if self.game.nb_drones == 0:
             if not val.isdigit():
                 raise ParseError("nbr of drones must be integer")
             nbr: int = int(val)
