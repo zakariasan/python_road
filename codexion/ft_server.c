@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:46:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/26 21:28:00 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/12 15:30:21 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,26 +67,51 @@ void	ft_grant_if_possible(t_server *srv, t_hub *hub)
 	}
 }
 
+static long	next_wakeup(t_server *srv, t_hub *hub)
+{
+	t_req	*req;
+	t_coder	*c;
+	long	best;
+	long	t;
+
+	best = -1;
+	req = srv->list_heap;
+	while (req)
+	{
+		c = ft_get_coder(req->coder_id, hub);
+		t = c->left->released + hub->dongle_cooldown;
+		if (best == -1 || t < best)
+			best = t;
+		t = c->right->released + hub->dongle_cooldown;
+		if (t < best)
+			best = t;
+		req = req->next;
+	}
+	return (best);
+}
 void	*ft_server_routine(void *args)
 {
 	t_hub		*hub;
 	t_server	*srv;
+	struct timespec	ts;
+	long			wake;
 
 	hub = (t_hub *)args;
 	srv = hub->server;
 	pthread_mutex_lock(&srv->mutex);
 	while (!is_over(hub))
 	{
-		while (srv->heap_size == 0 && !is_over(hub))
-			pthread_cond_wait(&srv->list_cond, &srv->mutex);
+		ft_grant_if_possible(srv, hub);
 		if (is_over(hub))
 			break ;
-		ft_grant_if_possible(srv, hub);
-		if (srv->heap_size > 0 && !is_over(hub))
+		if (srv->heap_size == 0)
+			pthread_cond_wait(&srv->list_cond, &srv->mutex);
+		else
 		{
-			pthread_mutex_unlock(&srv->mutex);
-			usleep(hub->dongle_cooldown * 1000);
-			pthread_mutex_lock(&srv->mutex);
+			wake = next_wakeup(srv, hub);
+			ts.tv_sec = wake / 1000;
+			ts.tv_nsec = (wake % 1000) * 1000000;
+			pthread_cond_timedwait(&srv->list_cond, &srv->mutex, &ts);
 		}
 	}
 	pthread_cond_broadcast(&srv->list_cond);
