@@ -1,7 +1,7 @@
 .PHONY: install run debug clean lint lint-strict
 
 install:
-	pip install -r requirements.txt
+	pip install --user -r requirements.txt
 
 run:
 	python main.py $(file)

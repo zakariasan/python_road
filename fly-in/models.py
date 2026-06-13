@@ -27,6 +27,8 @@ class Metadata:
         if not isinstance(self.max_link_capacity, int)\
                 or self.max_link_capacity <= 0:
             raise ValidationError("Max_link must be int > 0.")
+        if not isinstance(self.max_drones, int) or self.max_drones <= 0:
+            raise ValidationError("Max_drones must be <postive int>")
 
 
 @dataclass

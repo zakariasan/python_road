@@ -41,8 +41,10 @@ class FlyIn:
             game = parser.ft_parse()
             if game.s_hub is None or game.e_hub is None:
                 raise ValidationError("Missing start or End")
-            game.s_hub.meta.max_drones = game.nb_drones
-            game.e_hub.meta.max_drones = game.nb_drones
+            if game.s_hub.meta.max_drones == 1:
+                game.s_hub.meta.max_drones = game.nb_drones
+            if game.e_hub.meta.max_drones == 1:
+                game.e_hub.meta.max_drones = game.nb_drones
             config = Config(game)
             sim = Sim(game)
             viewer = Viewer(sim, config)

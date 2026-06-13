@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by [Your Name].*
+*This project has been created as part of the 42 curriculum by zhaouzan.*
 
 ---
 
@@ -15,7 +15,7 @@
 The project covers three main concerns:
 
 - **Parsing** a custom text-based map format defining zones, connections, and constraints.
-- **Pathfinding** using a modified A\* algorithm that accounts for zone types, movement costs, occupancy limits, and connection capacities.
+- **Pathfinding** using a modified A\*(DIJIKSTRA) algorithm that accounts for zone types, movement costs, occupancy limits, and connection capacities.
 - **Visualization** via a real-time pygame window showing drone positions, zone states, and simulation progress turn by turn.
 
 ### Key concepts

@@ -46,6 +46,7 @@ class Parser:
 
         Args:
             meta: part of string define metadata [zone, color]
+            parent: key has metadata
 
         Return:
             Meta object that has zone color [max_drones/max_link]
@@ -57,14 +58,13 @@ class Parser:
 
         meta: str = meta_d[1:-1].strip()
         if not meta:
-            return Metadata()
+            raise ValidationError("Fill the metadata or remove []")
 
-        if parent == 'hub':
-            ele: list[str] = [
+        ele: list[str] = [
                     "zone",
                     "color",
                     "max_drones",
-                    ] if parent == 'hub' else ["max_link_capacity"]
+                    ] if 'hub' in parent else ["max_link_capacity"]
         meta_obj = Metadata()
         for item in meta.split():
             if "=" not in item:
@@ -80,10 +80,26 @@ class Parser:
             elif k == "color":
                 meta_obj.color = v
             elif k == "max_drones":
+                if int(v) <= 0:
+                    raise ValueError("max_drones must be <postive int>")
+                if parent == 'start_hub' or parent == 'end_hub':
+                    self.check_start_end(v)
                 meta_obj.max_drones = int(v)
             elif k == "max_link_capacity":
+                if int(v) <= 0:
+                    raise ValueError("max_drones must be <postive int>")
                 meta_obj.max_link_capacity = int(v)
         return meta_obj
+
+    def check_start_end(self, value):
+        """Checking the start and end part with max_drones
+
+        Args:
+            value: nbr of drones
+        """
+        if int(value) < self.game.nb_drones:
+            raise ValidationError(
+                    "Start and End should have at least number of drones")
 
     def ft_split_meta(self, value: str) -> tuple[str, str]:
         """Split the Hub string before parsing/validation"""
@@ -122,7 +138,7 @@ class Parser:
 
         if (x, y) in self.game.all_coords():
             raise ValidationError(f"Duplicated coor({x},{y})")
-        meta_data: Metadata = self.ft_parse_meta(meta, 'hub')
+        meta_data: Metadata = self.ft_parse_meta(meta, key)
         hub: Hub = Hub(name, x, y, meta_data)
 
         if key == "start_hub":
@@ -149,11 +165,6 @@ class Parser:
             nbr: int = int(val)
             if nbr <= 0:
                 raise ValidationError("Number of drones must be positive int.")
-            if nbr > 99995:
-                raise ValidationError(
-                        "Too much drones you memo eated by pygame and drones."
-                        +
-                        "tooooo slowwwww")
             self.game.nb_drones = nbr
         else:
             raise ParseError("Duplicated nbr of drones.")
@@ -220,7 +231,8 @@ class Parser:
                     except (ValueError, ParseError, ValidationError) as e:
                         raise ValidationError(f"Line {i}: Error:{e}")
             if not self.game.check_game():
-                raise ValueError("Missing drones")
+                raise ValueError(
+                        "ERROR: Check map file start or end is Missing.")
         else:
             raise ValueError("Invalide file")
         return self.game

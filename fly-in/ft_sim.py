@@ -2,6 +2,7 @@ from models import Game, Drone, Hub, Zone, Net
 from typing import List, Union, Optional
 from ft_pathfinder import Pathfinder
 from math import sqrt
+from errors import ValidationError
 
 
 class Sim:
@@ -14,6 +15,8 @@ class Sim:
         self.drones: List[Drone] = []
         self.turns: int = 0
         self.ft_setup_drones()
+        if (self.pathfinder.A_star(self.game.s_hub, self.game.e_hub)) == []:
+            raise ValidationError("ERROR: There is No path.")
 
     def ft_setup_drones(self) -> List[Drone]:
         """Set up the drones that we need to update later"""
