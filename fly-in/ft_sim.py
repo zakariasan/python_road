@@ -123,12 +123,17 @@ class Sim:
 
         drone.net = net
         net.stay_in(origine, target)
+
+        if len(target.drones) >= target.meta.max_drones and target.meta.zone == Zone.restricted:
+            if drone.was_in(net):
+                target.drones.remove(f'D-{drone.idx}')
         if len(target.drones) >= target.meta.max_drones:
             if origine.meta.zone != Zone.restricted or net.can_use():
                 return False
 
         if target.meta.zone == Zone.restricted and not drone.was_in(net):
             drone.next_hub = net.get_name()
+            target.drones.append(f'D-{drone.idx}')
         else:
             drone.next_hub = drone.path[1]
             drone.path.pop(0)
