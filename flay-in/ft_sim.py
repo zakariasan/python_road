@@ -147,8 +147,8 @@ class Sim:
         else:
             drone.next_hub = drone.path[1]
             drone.path.pop(0)
-            if origine.meta.zone == Zone.restricted:
-                net.usage -= 2
+          #  if origine.meta.zone == Zone.restricted:
+          #      net.usage -= 2
         if not drone.was_in(net):
             net.reserve()
         if f'D-{drone.idx}' in origine.drones:

@@ -39,7 +39,7 @@ class FlyIn:
             filename = self.ft_get_file()
             parser = Parser(filename)
             game = parser.ft_parse()
-            if game.s_hub is None or game.e_hub is None:
+            if game.s_hub is None or game.e_hub is None or game.s_hub.meta.zone == Zone.blocked:
                 raise ValidationError("Missing start or End")
             if game.s_hub.meta.max_drones == 1:
                 game.s_hub.meta.max_drones = game.nb_drones

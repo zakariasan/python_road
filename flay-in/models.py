@@ -169,7 +169,7 @@ class Drone:
     hub_name: Optional[str] = ""
     next_hub: Optional[str] = None
     net: Optional[Net] = None
-    speed: float = 700
+    speed: float = 2
     visited: List[str] = field(default_factory=list)
 
     def was_in(self, net: Net) -> bool:
