@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/19 13:20:30 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/23 00:00:00 by zhaouzan         ###   ########.fr       */
+/*   Created: 2026/06/23 22:46:36 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/06/24 01:04:15 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,6 @@ void	init_coder(t_coder *coder, int id, t_hub *hub)
 	coder->left = &hub->dongles[id % hub->num_coders];
 }
 
-/*
-** Always acquire the lower-id dongle first (resource ordering).
-** This breaks the circular wait condition and prevents deadlock.
-*/
 static void	get_order(t_coder *c, t_dongle **first, t_dongle **second)
 {
 	if (c->left == c->right)
@@ -46,10 +42,6 @@ static void	get_order(t_coder *c, t_dongle **first, t_dongle **second)
 	}
 }
 
-/*
-** If simulation ended while we held a dongle, release it so other
-** threads can unblock and terminate cleanly.
-*/
 static void	release_owned(t_dongle *d, t_coder *c)
 {
 	if (!d)
@@ -96,7 +88,7 @@ void	*coder_routine(void *args)
 		pthread_mutex_lock(&hub->over_mutex);
 		coder->deadline = coder->last_compile + hub->time_to_burnout;
 		coder->counter++;
-		pthread_cond_signal(&hub->over_cond);
+		//pthread_cond_signal(&hub->over_cond);
 		pthread_mutex_unlock(&hub->over_mutex);
 		loging(coder, "has taken a dongle");
 		if (second)

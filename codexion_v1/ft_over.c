@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:08:59 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/23 00:00:00 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/24 01:35:19 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,22 +18,20 @@ int	ft_over(t_hub *hub)
 
 	if (pthread_join(hub->monitor, NULL) != 0)
 		return (-1);
-	i = 0;
-	while (i < hub->num_coders)
+	i = -1;
+	while (++i < hub->num_coders)
 	{
 		if (pthread_join(hub->coders[i].thread, NULL) != 0)
 		{
 			set_over(hub);
 			return (-1);
 		}
-		i++;
 	}
-	i = 0;
-	while (i < hub->num_coders)
+	i = -1;
+	while (++i < hub->num_coders)
 	{
 		pthread_mutex_destroy(&hub->dongles[i].mutex);
 		pthread_cond_destroy(&hub->dongles[i].cond);
-		i++;
 	}
 	pthread_mutex_destroy(&hub->over_mutex);
 	pthread_cond_destroy(&hub->over_cond);
@@ -41,4 +39,44 @@ int	ft_over(t_hub *hub)
 	free(hub->dongles);
 	free(hub->coders);
 	return (0);
+}
+
+int	is_over(t_hub *hub)
+{
+	int	res;
+
+	pthread_mutex_lock(&hub->over_mutex);
+	res = hub->over;
+	pthread_mutex_unlock(&hub->over_mutex);
+	return (res);
+}
+
+void	set_over(t_hub *hub)
+{
+	pthread_mutex_lock(&hub->over_mutex);
+	hub->over = 1;
+	pthread_cond_broadcast(&hub->over_cond);
+	pthread_mutex_unlock(&hub->over_mutex);
+}
+
+int	all_done(t_hub *hub)
+{
+	int	i;
+	int	done;
+
+	i = 0;
+	done = 1;
+	pthread_mutex_lock(&hub->over_mutex);
+	while (i < hub->num_coders)
+	{
+		if (hub->coders[i].counter < hub->compiles_required)
+		{
+			done = 0;
+			break ;
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&hub->over_mutex);
+
+	return (done);
 }
