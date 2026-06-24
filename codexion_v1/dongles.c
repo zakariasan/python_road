@@ -6,26 +6,32 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:25:22 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/23 00:00:00 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/24 03:37:13 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-void	init_dongle(t_dongle *d, int id, int cooldown, t_scheduler sched)
+int	init_dongle(t_dongle *d, int id, int cooldown, t_scheduler sched)
 {
+	t_waiter *q;
+
+	q = malloc(sizeof(t_waiter) * 2);
+	if (!q)
+		return (-1);
+	d->queue = q;
+	d->q_size = 0;
 	d->id = id;
 	d->owner = -1;
 	d->cooldown = cooldown;
 	d->released = get_time_ms() - cooldown;
 	d->scheduler = sched;
-	d->queue[0].active = 0;
 	d->queue[1].active = 0;
 	pthread_mutex_init(&d->mutex, NULL);
 	pthread_cond_init(&d->cond, NULL);
+	return (0);
 }
 
-/* Add coder to the dongle's 2-slot queue. */
 static void	dq_push(t_dongle *d, t_coder *c)
 {
 	int	i;
@@ -45,7 +51,6 @@ static void	dq_push(t_dongle *d, t_coder *c)
 	}
 }
 
-/* Remove coder from the dongle's queue. */
 static void	dq_pop(t_dongle *d, int coder_id)
 {
 	int	i;
@@ -62,12 +67,6 @@ static void	dq_pop(t_dongle *d, int coder_id)
 	}
 }
 
-/*
-** Returns the coder_id of the highest-priority waiter:
-**   FIFO: lowest arrived timestamp wins.
-**   EDF : lowest deadline wins (tie-break: lower coder_id).
-** Returns -1 if queue is empty.
-*/
 static int	dq_best(t_dongle *d)
 {
 	int		a;
@@ -100,10 +99,6 @@ static int	dq_best(t_dongle *d)
 	return (wb->coder_id);
 }
 
-/*
-** Block until this coder is the highest-priority waiter, the dongle is free,
-** and the cooldown has elapsed. Uses timedwait when cooldown is the only blocker.
-*/
 void	dongle_acquire(t_dongle *d, t_coder *c)
 {
 	long		cooldown_end;
@@ -136,10 +131,6 @@ void	dongle_acquire(t_dongle *d, t_coder *c)
 	pthread_mutex_unlock(&d->mutex);
 }
 
-/*
-** Release the dongle: mark free, record release time, wake all waiters on
-** this dongle so they can re-evaluate their priority.
-*/
 void	dongle_release(t_dongle *d, t_hub *hub)
 {
 	(void)hub;

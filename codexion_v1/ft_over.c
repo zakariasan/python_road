@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 13:08:59 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/24 01:35:19 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/24 03:25:37 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ int	ft_over(t_hub *hub)
 	{
 		pthread_mutex_destroy(&hub->dongles[i].mutex);
 		pthread_cond_destroy(&hub->dongles[i].cond);
+		queue_free(&hub->dongles[i]);
 	}
 	pthread_mutex_destroy(&hub->over_mutex);
 	pthread_cond_destroy(&hub->over_cond);

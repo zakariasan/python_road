@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/24 00:32:52 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/24 03:26:45 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ typedef struct s_dongle
 	int				cooldown;
 	pthread_mutex_t	mutex;
 	pthread_cond_t	cond;
-	t_waiter		queue[2];
+	t_waiter		*queue;
+	int				q_size;
 	t_scheduler		scheduler;
 }				t_dongle;
 
@@ -88,12 +89,16 @@ int		is_over(t_hub *hub);
 void	set_over(t_hub *hub);
 void	wake_all_dongles(t_hub *hub);
 
-void	init_dongle(t_dongle *dongle, int id, int cooldown, t_scheduler sched);
 void	dongle_acquire(t_dongle *d, t_coder *c);
 void	dongle_release(t_dongle *d, t_hub *hub);
+void	queue_free(t_dongle *d);
+int		init_dongle(t_dongle *dongle, int id, int cooldown, t_scheduler sched);
 
 void	init_coder(t_coder *coder, int id, t_hub *hub);
 void	*coder_routine(void *args);
+void	release_owned(t_dongle *d, t_coder *c);
+void	get_order(t_coder *c, t_dongle **first, t_dongle **second);
+int		take_dongles(t_coder *c, t_dongle *first, t_dongle *second);
 
 int		ft_init_hub(t_hub *hub);
 
