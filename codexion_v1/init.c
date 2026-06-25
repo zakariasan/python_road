@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/23 22:46:41 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/24 03:30:10 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/24 06:06:01 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,4 +60,14 @@ int	ft_init_hub(t_hub *hub)
 	pthread_cond_init(&hub->over_cond, NULL);
 	pthread_mutex_init(&hub->print_mutex, NULL);
 	return (0);
+}
+
+void	destroy_hub(t_hub *hub)
+{
+	destroy_dongles(hub, hub->num_coders);
+	pthread_mutex_destroy(&hub->over_mutex);
+	pthread_cond_destroy(&hub->over_cond);
+	pthread_mutex_destroy(&hub->print_mutex);
+	free(hub->dongles);
+	free(hub->coders);
 }

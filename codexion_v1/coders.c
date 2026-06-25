@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/24 02:05:29 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/24 02:25:45 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/25 19:19:51 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,9 @@ void	init_coder(t_coder *coder, int id, t_hub *hub)
 
 static void	compile_time(t_coder *c, t_hub *hub)
 {
-	c->last_compile = get_time_ms();
 	pthread_mutex_lock(&hub->over_mutex);
-	c->deadline = c->last_compile + hub->time_to_burnout;
+	c->last_compile = get_time_ms() + hub->time_to_compile;
+	c->deadline = c->last_compile + hub->time_to_burnout + hub->time_to_compile;
 	c->counter++;
 	pthread_mutex_unlock(&hub->over_mutex);
 }
@@ -61,7 +61,7 @@ void	*coder_routine(void *args)
 	get_order(coder, &first, &second);
 	if (!second)
 	{
-		while(!is_over(hub))
+		while (!is_over(hub))
 			usleep(1000);
 		return (NULL);
 	}

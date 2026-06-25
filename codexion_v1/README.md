@@ -18,6 +18,21 @@ configurable **scheduling policy** (FIFO or EDF) that decides which waiting code
 is served next when several compete for the same dongle. A dedicated **monitor**
 thread watches every coder and detects burnout precisely.
 
+```mermaid
+flowchart TD
+    M["main()"] --> |pthread_create| MON["monitor thread<br/><i>detects burnout & done</i>"]
+    M --> |"pthread_create × N"| COD["coder threads × N<br/><i>compile, debug, refactor</i>"]
+    MON --> HUB["shared t_hub<br/><i>over flag · dongles[] · over_mutex · print_mutex</i>"]
+    COD --> HUB
+    HUB --> OVR["ft_over(): join all · free hub"]
+
+    style M fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
+    style MON fill:#E1F5EE,stroke:#0F6E56,color:#2C2C2A
+    style COD fill:#EEEDFE,stroke:#534AB7,color:#2C2C2A
+    style HUB fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
+    style OVR fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
+```
+
 ## Instructions
 
 Compile with the provided Makefile:
@@ -50,6 +65,10 @@ Run it with eight mandatory arguments:
   time has passed.
 - `scheduler` — `fifo` or `edf`.
 
+All arguments are validated before the simulation starts: non-integer values,
+negative numbers, and any `scheduler` other than `fifo` or `edf` are rejected
+with an error on `stderr` and a non-zero exit.
+
 Example:
 
 ```
@@ -70,22 +89,25 @@ first), computed once in `get_order`. Because all coders follow the same order,
 the cycle of "each holds one and waits for the next" can never form — at least
 one coder always reaches for its dongles in the opposite direction.
 
-**Starvation prevention / fair arbitration.** Each dongle owns a priority queue
-that decides who is served next. Under FIFO the earliest arrival wins; under EDF
-the earliest deadline wins, with the lower coder id as a deterministic
-tie-breaker. A coder is only granted a dongle when it is the top-priority waiter,
-so no coder is indefinitely overtaken.
+**Starvation prevention / fair arbitration.** Each dongle keeps a small,
+fixed-size waiter table (two slots — in the Dining Philosophers topology a dongle
+sits between exactly two neighbouring coders, so at most two ever wait on it at
+once). When a dongle becomes free, its next owner is chosen from the waiting
+coders by the active policy: under FIFO the earliest arrival wins; under EDF the
+earliest deadline wins, with the lower coder id as a deterministic tie-breaker. A
+coder is granted the dongle only when it is the top-priority waiter (`my_turn`),
+so no waiting coder is indefinitely overtaken.
 
 **Cooldown handling.** After a dongle is released, its release timestamp is
 recorded. A waiting coder may only acquire it once `dongle_cooldown` milliseconds
 have elapsed since that release. When the cooldown is the only thing blocking an
-otherwise-eligible coder, it sleeps precisely until the cooldown expires rather
-than polling.
+otherwise-eligible coder, it sleeps precisely until the cooldown expires (via
+`pthread_cond_timedwait`) rather than polling.
 
 **Precise burnout detection.** A separate monitor thread tracks every coder's
-deadline (`last_compile_start + time_to_burnout`). It polls on a short interval
-and declares the first coder past its deadline as burned out, logging it well
-within the required 10 ms window.
+deadline (`last_compile_start + time_to_burnout`). It polls on a short (1 ms)
+interval and declares the first coder past its deadline as burned out, logging it
+well within the required 10 ms window.
 
 **Clean termination.** The simulation ends on exactly one of two events: every
 coder has compiled the required number of times (success), or a coder burns out
@@ -104,47 +126,69 @@ the hub has an `over_mutex` guarding the shared `over` flag and the coders'
 `deadline`/`counter` fields, and a `print_mutex` serializing output.
 
 **Per-dongle mutex + condition variable.** A dongle's mutex protects its state
-(`owner`, `released`, and its waiting queue). A coder acquiring a dongle holds
+(`owner`, `released`, and its waiter table). A coder acquiring a dongle holds
 this mutex while it checks whether it may take the dongle and while it waits, so
 the check-and-wait is atomic. The condition variable lets a waiting coder sleep
 instead of busy-looping; on release, the holder broadcasts to wake all waiters so
 the top-priority one can proceed.
 
-**Avoiding lost wakeups.** Waiting always uses the pattern "hold the mutex, check
-the condition in a loop, and wait with the mutex held." `pthread_cond_wait` and
-`pthread_cond_timedwait` release the mutex only while actually sleeping and
-re-acquire it on waking. This closes the race where a release could happen in the
-gap between a coder's check and its sleep. After every wake the coder re-checks
-the real state rather than trusting the wakeup, which also handles spurious
-wakeups. The project uses `pthread_cond_broadcast` (not signal) so no waiter is
-ever left behind.
+**Avoiding lost and spurious wakeups.** Waiting always uses the pattern "hold the
+mutex, check the condition in a loop, and wait with the mutex held."
+`pthread_cond_wait` and `pthread_cond_timedwait` release the mutex only while
+actually sleeping and re-acquire it on waking. This closes the race where a
+release could happen in the gap between a coder's check and its sleep. Because the
+check is a `while` loop, after every wake the coder re-checks the real state
+rather than trusting the wakeup, which also handles spurious wakeups. The project
+uses `pthread_cond_broadcast` (not `signal`) so no waiter is ever left behind.
 
 **Coder–monitor communication.** Coders and the monitor share state through the
 hub under `over_mutex`. A coder updates its `deadline` and `counter` under this
 mutex when it compiles; the monitor reads those same fields under the same mutex
-(in `find_burned` and `all_done`). Because every read and every write of a shared
-field goes through the one common lock, there is no data race between coders and
-the monitor. The monitor's main loop itself holds no lock — each of its helpers
-takes `over_mutex` only briefly — so the monitor never blocks the coders while it
-runs.
+(in `find_burned` and `all_done`). Because every cross-thread read and write of a
+shared field goes through one common lock, there is no data race between coders
+and the monitor. (A coder also reads its *own* `deadline` when enqueuing itself,
+but that read is on the same thread that writes it, so it is not a race.) The
+monitor's main loop holds no lock — each of its helpers takes `over_mutex` only
+briefly — so the monitor never blocks the coders while it runs.
 
-**Lock ordering safety.** `over_mutex` and the dongle mutexes are never held
-nested: a coder takes `over_mutex` only when it holds no dongle mutex, the monitor
-takes only `over_mutex`, and the shutdown wake takes only dongle mutexes. With no
-lock-ordering cycle, the added synchronization cannot itself introduce a deadlock.
+**Lock-ordering safety.** Two lock classes exist: the per-dongle mutexes and the
+hub's `over_mutex`. They are sometimes held nested — while a coder waits inside
+`dongle_acquire` it holds that dongle's mutex and briefly takes `over_mutex`
+through `is_over` — but always in the **same order**: dongle mutex first, then
+`over_mutex`. No path ever takes them the other way round: `set_over`,
+`find_burned`, `all_done` and `compile_time` take `over_mutex` while holding no
+dongle mutex, and the shutdown wake (`wake_all_dongles`) takes dongle mutexes
+while holding no `over_mutex`. A single consistent acquisition order means there
+is no lock-ordering cycle, so the added synchronization cannot itself deadlock.
+
+## Technical choices
+
+**Two-slot waiter table instead of a generic heap.** Because each dongle is
+shared by exactly two neighbouring coders, its waiter table never holds more than
+two entries. The next-owner selection (`dq_best` / `winner`) therefore compares
+at most two waiters in O(1), and a general heap would add code and complexity
+with no functional benefit at this contention level.
 
 ## Resources
 
-- The Dining Philosophers problem (Dijkstra) — classic reference for resource
-  sharing, deadlock, and starvation.
-- POSIX Threads documentation — `man pthread_create`, `pthread_mutex_lock`,
-  `pthread_cond_wait`, `pthread_cond_timedwait`, `pthread_cond_broadcast`.
-- Coffman's four conditions for deadlock.
-- Binary heap / priority queue — standard data-structures reference for the
-  FIFO/EDF arbitration queue.
-
-**Use of AI.** AI was used as a reviewer and debugging aid, not a code generator:
-to reason through data races surfaced by Helgrind/ThreadSanitizer, to explain
-the behavior of the pthreads primitives, to refactor long functions into smaller
-named helpers, and to verify the priority-queue logic in isolation. All code was
-reviewed, tested, and understood before being kept.
+- The Dining Philosophers problem (E. W. Dijkstra, EWD-310, *Hierarchical
+  Ordering of Sequential Processes*) — the origin of resource ordering as a
+  deadlock fix, used here in `get_order`.
+- Coffman, Elphick, Shoshani — the four necessary conditions for deadlock.
+- *Operating Systems: Three Easy Pieces* (Arpaci-Dusseau), free at
+  <https://pages.cs.wisc.edu/~remzi/OSTEP/> — chapters on Locks, Condition
+  Variables, and Common Concurrency Problems.
+- *The Little Book of Semaphores* (Allen B. Downey), free at
+  <https://greenteapress.com/wp/semaphores/> — classic synchronization problems,
+  including Dining Philosophers.
+- LLNL POSIX Threads Programming tutorial —
+  <https://hpc-tutorials.llnl.gov/posix/> — practical pthreads reference for
+  mutexes and condition variables.
+- *Programming with POSIX Threads* (David R. Butenhof) — the predicate-loop /
+  condition-variable pattern in depth.
+- POSIX Threads man pages — `pthread_create`, `pthread_mutex_lock`,
+  `pthread_cond_wait`, `pthread_cond_timedwait`, `pthread_cond_broadcast`; the
+  `pthread_cond_wait` page is the authority on the mandatory predicate loop and
+  spurious wakeups.
+- Tooling — Valgrind (Helgrind/DRD) and ThreadSanitizer were used to verify the
+  absence of data races, lock-ordering violations, and memory leaks.

@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 21:34:44 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/04/26 21:32:06 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/25 15:48:56 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,23 @@ void	ft_get_values(char **av, t_hub *hub)
 		hub->scheduler = FIFO;
 }
 
-int	ft_check_params(int ac, char **av)
+static int	is_number(char *s)
+{
+	int	i;
+
+	i = 0;
+	if (!s || !s[0])
+		return (0);
+	while (s[i])
+	{
+		if (s[i] < '0' || s[i] > '9')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+static int	ft_check_params(int ac, char **av)
 {
 	int	i;
 
@@ -39,7 +55,7 @@ int	ft_check_params(int ac, char **av)
 			fprintf(stderr, "Error: No coder [%s]\n", av[i]);
 			return (-1);
 		}
-		if (atoi(av[i]) < 0)
+		if (!is_number(av[i]) || atoi(av[i]) < 0)
 		{
 			fprintf(stderr, "Error: invalid argument [%s]\n", av[i]);
 			return (-1);
@@ -59,8 +75,8 @@ int	ft_parser(int ac, char **av, t_hub *hub)
 	if (ac != 9)
 	{
 		fprintf(stderr, "Usage: ./codexion num_coders time_to_burnout"
-			"time_to_compile time_to_debug time_to_refactor"
-			"compiles_required dongle_cooldown scheduler\n");
+			" time_to_compile time_to_debug time_to_refactor"
+			" compiles_required dongle_cooldown scheduler\n");
 		return (-1);
 	}
 	if (ft_check_params(ac, av) != 0)

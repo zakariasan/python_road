@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/24 03:26:45 by zhaouzan         ###   ########.fr       */
+/*   Created: 2026/06/24 06:03:53 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/06/25 17:20:10 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ typedef struct s_hub
 
 long	get_time_ms(void);
 void	loging(t_coder *coder, char *action);
+void	u_sleep(t_hub *hub, long ms);
 
 void	*monitor_routine(void *args);
 int		is_over(t_hub *hub);
@@ -106,5 +107,9 @@ int		ft_parser(int ac, char **av, t_hub *hub);
 
 int		ft_over(t_hub *hub);
 int		all_done(t_hub *hub);
+void	destroy_hub(t_hub *hub);
 
+void	dq_push(t_dongle *d, t_coder *c);
+void	dq_pop(t_dongle *d, int coder_id);
+int		dq_best(t_dongle *d);
 #endif
