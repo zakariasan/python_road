@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 14:28:40 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/25 19:18:51 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/23 00:00:00 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,4 +33,18 @@ void	loging(t_coder *coder, char *action)
 		coder->id,
 		action);
 	pthread_mutex_unlock(&coder->hub->print_mutex);
+}
+
+void	u_sleep(t_hub *hub, int ms)
+{
+	struct timespec	ts;
+	long			end;
+
+	end = get_time_ms() + ms;
+	ts.tv_sec = end / 1000;
+	ts.tv_nsec = (end % 1000) * 1000000;
+	pthread_mutex_lock(&hub->over_mutex);
+	if (!hub->over)
+		pthread_cond_timedwait(&hub->over_cond, &hub->over_mutex, &ts);
+	pthread_mutex_unlock(&hub->over_mutex);
 }

@@ -5,13 +5,12 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/24 02:05:29 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/25 19:19:51 by zhaouzan         ###   ########.fr       */
+/*   Created: 2026/04/19 13:20:30 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/06/23 00:00:00 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <unistd.h>
 
 void	init_coder(t_coder *coder, int id, t_hub *hub)
 {
@@ -24,29 +23,45 @@ void	init_coder(t_coder *coder, int id, t_hub *hub)
 	coder->left = &hub->dongles[id % hub->num_coders];
 }
 
-static void	compile_time(t_coder *c, t_hub *hub)
+/*
+** Always acquire the lower-id dongle first (resource ordering).
+** This breaks the circular wait condition and prevents deadlock.
+*/
+static void	get_order(t_coder *c, t_dongle **first, t_dongle **second)
 {
-	pthread_mutex_lock(&hub->over_mutex);
-	c->last_compile = get_time_ms() + hub->time_to_compile;
-	c->deadline = c->last_compile + hub->time_to_burnout + hub->time_to_compile;
-	c->counter++;
-	pthread_mutex_unlock(&hub->over_mutex);
+	if (c->left == c->right)
+	{
+		*first = c->left;
+		*second = NULL;
+	}
+	else if (c->left->id < c->right->id)
+	{
+		*first = c->left;
+		*second = c->right;
+	}
+	else
+	{
+		*first = c->right;
+		*second = c->left;
+	}
 }
 
-static void	work_time(t_coder *c, t_hub *hub, t_dongle *first, t_dongle *second)
+/*
+** If simulation ended while we held a dongle, release it so other
+** threads can unblock and terminate cleanly.
+*/
+static void	release_owned(t_dongle *d, t_coder *c)
 {
-	loging(c, "has taken a dongle");
-	if (second)
-		loging(c, "has taken a dongle");
-	loging(c, "is compiling");
-	usleep(hub->time_to_compile * 1000);
-	dongle_release(first, hub);
-	if (second)
-		dongle_release(second, hub);
-	loging(c, "is debugging");
-	usleep(hub->time_to_debug * 1000);
-	loging(c, "is refactoring");
-	usleep(hub->time_to_refactor * 1000);
+	if (!d)
+		return ;
+	pthread_mutex_lock(&d->mutex);
+	if (d->owner == c->id)
+	{
+		d->owner = -1;
+		d->released = get_time_ms();
+		pthread_cond_broadcast(&d->cond);
+	}
+	pthread_mutex_unlock(&d->mutex);
 }
 
 void	*coder_routine(void *args)
@@ -59,18 +74,42 @@ void	*coder_routine(void *args)
 	coder = (t_coder *)args;
 	hub = coder->hub;
 	get_order(coder, &first, &second);
-	if (!second)
-	{
-		while (!is_over(hub))
-			usleep(1000);
-		return (NULL);
-	}
 	while (!is_over(hub))
 	{
-		if (take_dongles(coder, first, second) != 0)
+		dongle_acquire(first, coder);
+		if (is_over(hub))
+		{
+			release_owned(first, coder);
 			return (NULL);
-		compile_time(coder, hub);
-		work_time(coder, hub, first, second);
+		}
+		if (second)
+		{
+			dongle_acquire(second, coder);
+			if (is_over(hub))
+			{
+				dongle_release(first, hub);
+				release_owned(second, coder);
+				return (NULL);
+			}
+		}
+		coder->last_compile = get_time_ms();
+		pthread_mutex_lock(&hub->over_mutex);
+		coder->deadline = coder->last_compile + hub->time_to_burnout;
+		coder->counter++;
+		pthread_cond_signal(&hub->over_cond);
+		pthread_mutex_unlock(&hub->over_mutex);
+		loging(coder, "has taken a dongle");
+		if (second)
+			loging(coder, "has taken a dongle");
+		loging(coder, "is compiling");
+		u_sleep(hub, hub->time_to_compile);
+		dongle_release(first, hub);
+		if (second)
+			dongle_release(second, hub);
+		loging(coder, "is debugging");
+		u_sleep(hub, hub->time_to_debug);
+		loging(coder, "is refactoring");
+		u_sleep(hub, hub->time_to_refactor);
 	}
 	return (NULL);
 }
