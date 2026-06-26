@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/12 01:36:23 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/23 00:00:00 by zhaouzan         ###   ########.fr       */
+/*   Created: 2026/06/24 06:03:53 by zhaouzan          #+#    #+#             */
+/*   Updated: 2026/06/26 20:35:32 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,6 @@ typedef enum e_scheduler
 	EDF
 }			t_scheduler;
 
-/*
-** 2-slot priority queue embedded in each dongle.
-** A dongle sits between exactly 2 coders, so at most 2 waiters at any time.
-** FIFO: grant to the waiter with the smallest arrived timestamp.
-** EDF : grant to the waiter with the smallest deadline.
-*/
 typedef struct s_waiter
 {
 	int		coder_id;
@@ -50,7 +44,8 @@ typedef struct s_dongle
 	int				cooldown;
 	pthread_mutex_t	mutex;
 	pthread_cond_t	cond;
-	t_waiter		queue[2];
+	t_waiter		*queue;
+	int				q_size;
 	t_scheduler		scheduler;
 }				t_dongle;
 
@@ -65,7 +60,6 @@ typedef struct s_coder
 	t_dongle		*right;
 	t_hub			*hub;
 }				t_coder;
-
 
 typedef struct s_hub
 {
@@ -87,33 +81,35 @@ typedef struct s_hub
 	int				over;
 }				t_hub;
 
-/* logtime.c */
 long	get_time_ms(void);
 void	loging(t_coder *coder, char *action);
 void	u_sleep(t_hub *hub, int ms);
 
-/* monitor.c */
 void	*monitor_routine(void *args);
 int		is_over(t_hub *hub);
 void	set_over(t_hub *hub);
 void	wake_all_dongles(t_hub *hub);
 
-/* dongles.c */
-void	init_dongle(t_dongle *dongle, int id, int cooldown, t_scheduler sched);
 void	dongle_acquire(t_dongle *d, t_coder *c);
 void	dongle_release(t_dongle *d, t_hub *hub);
+void	queue_free(t_dongle *d);
+int		init_dongle(t_dongle *dongle, int id, int cooldown, t_scheduler sched);
 
-/* coders.c */
 void	init_coder(t_coder *coder, int id, t_hub *hub);
 void	*coder_routine(void *args);
+void	release_owned(t_dongle *d, t_coder *c);
+void	get_order(t_coder *c, t_dongle **first, t_dongle **second);
+int		take_dongles(t_coder *c, t_dongle *first, t_dongle *second);
 
-/* init.c */
 int		ft_init_hub(t_hub *hub);
 
-/* parser.c */
 int		ft_parser(int ac, char **av, t_hub *hub);
 
-/* ft_over.c */
 int		ft_over(t_hub *hub);
+int		all_done(t_hub *hub);
+void	destroy_hub(t_hub *hub);
 
+void	dq_push(t_dongle *d, t_coder *c);
+void	dq_pop(t_dongle *d, int coder_id);
+int		dq_best(t_dongle *d);
 #endif
