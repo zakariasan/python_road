@@ -26,7 +26,7 @@ void	init_coder(t_coder *coder, int id, t_hub *hub)
 static void	compile_time(t_coder *c, t_hub *hub)
 {
 	pthread_mutex_lock(&hub->over_mutex);
-	c->last_compile = get_time_ms() + hub->time_to_compile;
+	c->last_compile = get_time_ms();
 	c->deadline = c->last_compile + hub->time_to_burnout;
 	c->counter++;
 	pthread_mutex_unlock(&hub->over_mutex);
