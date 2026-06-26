@@ -33,7 +33,7 @@ int	init_dongle(t_dongle *d, int id, int cooldown, t_scheduler sched)
 	return (0);
 }
 
-int	my_turn(t_dongle *d, int id)
+static int	my_turn(t_dongle *d, int id)
 {
 	return (d->owner == -1 && dq_best(d) == id);
 }

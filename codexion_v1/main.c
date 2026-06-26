@@ -12,18 +12,29 @@
 
 #include "codexion.h"
 
+static int	fail_start(t_hub *hub, int created)
+{
+	set_over(hub);
+	wake_all_dongles(hub);
+	pthread_join(hub->monitor, NULL);
+	while (created-- > 0)
+		pthread_join(hub->coders[created].thread, NULL);
+	destroy_hub(hub);
+	return (-1);
+}
+
 int	ft_codexion(t_hub *hub)
 {
 	int	i;
 
 	if (pthread_create(&hub->monitor, NULL, monitor_routine, hub) != 0)
-		return (-1);
+		return (destroy_hub(hub), -1);
 	i = 0;
 	while (i < hub->num_coders)
 	{
 		if (pthread_create(&hub->coders[i].thread,
 				NULL, coder_routine, &hub->coders[i]) != 0)
-			return (-1);
+			return (fail_start(hub, i));
 		i++;
 	}
 	return (ft_over(hub));

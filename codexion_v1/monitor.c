@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <unistd.h>
 
 void	wake_all_dongles(t_hub *hub)
 {
@@ -63,8 +62,12 @@ void	*monitor_routine(void *args)
 			return (set_over(hub), wake_all_dongles(hub), NULL);
 		burned = find_burned(hub);
 		if (burned)
-			return (set_over(hub), wake_all_dongles(hub),
-				loging(burned, "burned out"), NULL);
+		{
+			loging(burned, "burned out");
+			set_over(hub);
+			wake_all_dongles(hub);
+			return (NULL);
+		}
 		usleep(1000);
 	}
 	wake_all_dongles(hub);

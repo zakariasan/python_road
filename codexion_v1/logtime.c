@@ -25,9 +25,12 @@ void	loging(t_coder *coder, char *action)
 	int	is_burned;
 
 	is_burned = (strcmp(action, "burned out") == 0);
-	if (!is_burned && is_over(coder->hub))
-		return ;
 	pthread_mutex_lock(&coder->hub->print_mutex);
+	if (!is_burned && is_over(coder->hub))
+	{
+		pthread_mutex_unlock(&coder->hub->print_mutex);
+		return ;
+	}
 	printf("%ld %d %s\n",
 		get_time_ms() - coder->hub->start_time,
 		coder->id,

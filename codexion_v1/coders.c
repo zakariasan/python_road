@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <unistd.h>
 
 void	init_coder(t_coder *coder, int id, t_hub *hub)
 {
@@ -28,7 +27,7 @@ static void	compile_time(t_coder *c, t_hub *hub)
 {
 	pthread_mutex_lock(&hub->over_mutex);
 	c->last_compile = get_time_ms() + hub->time_to_compile;
-	c->deadline = c->last_compile + hub->time_to_burnout + hub->time_to_compile;
+	c->deadline = c->last_compile + hub->time_to_burnout;
 	c->counter++;
 	pthread_mutex_unlock(&hub->over_mutex);
 }
@@ -39,14 +38,14 @@ static void	work_time(t_coder *c, t_hub *hub, t_dongle *first, t_dongle *second)
 	if (second)
 		loging(c, "has taken a dongle");
 	loging(c, "is compiling");
-	u_sleep(hub, hub->time_to_compile * 1000);
+	u_sleep(hub, hub->time_to_compile);
 	dongle_release(first, hub);
 	if (second)
 		dongle_release(second, hub);
 	loging(c, "is debugging");
-	u_sleep(hub, hub->time_to_debug * 1000);
+	u_sleep(hub, hub->time_to_debug);
 	loging(c, "is refactoring");
-	u_sleep(hub, hub->time_to_refactor * 1000);
+	u_sleep(hub, hub->time_to_refactor);
 }
 
 void	*coder_routine(void *args)
@@ -61,8 +60,10 @@ void	*coder_routine(void *args)
 	get_order(coder, &first, &second);
 	if (!second)
 	{
-		while (!is_over(hub))
-			usleep(1000);
+		pthread_mutex_lock(&hub->over_mutex);
+		while (!hub->over)
+			pthread_cond_wait(&hub->over_cond, &hub->over_mutex);
+		pthread_mutex_unlock(&hub->over_mutex);
 		return (NULL);
 	}
 	while (!is_over(hub))
