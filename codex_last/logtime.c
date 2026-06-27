@@ -47,7 +47,7 @@ void	u_sleep(t_hub *hub, int ms)
 	ts.tv_sec = end / 1000;
 	ts.tv_nsec = (end % 1000) * 1000000;
 	pthread_mutex_lock(&hub->over_mutex);
-	if (!hub->over)
+	while (!hub->over && get_time_ms() < end)
 		pthread_cond_timedwait(&hub->over_cond, &hub->over_mutex, &ts);
 	pthread_mutex_unlock(&hub->over_mutex);
 }

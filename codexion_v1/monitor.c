@@ -35,7 +35,7 @@ static t_coder	*find_burned(t_hub *hub)
 	i = 0;
 	while (i < hub->num_coders)
 	{
-		if (now >= hub->coders[i].deadline)
+		if (now > hub->coders[i].deadline)
 			return (&hub->coders[i]);
 		i++;
 	}
