@@ -6,7 +6,7 @@
 /*   By: zhaouzan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/24 00:22:29 by zhaouzan          #+#    #+#             */
-/*   Updated: 2026/06/25 19:19:22 by zhaouzan         ###   ########.fr       */
+/*   Updated: 2026/06/27 01:57:59 by zhaouzan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ static t_coder	*find_burned(t_hub *hub)
 	pthread_mutex_lock(&hub->over_mutex);
 	while (i < hub->num_coders)
 	{
-		if (now >= hub->coders[i].deadline)
+		if (now > hub->coders[i].deadline)
 		{
 			burned = &hub->coders[i];
 			break ;
