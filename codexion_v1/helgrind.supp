@@ -1,0 +1,30 @@
+# ============================================================================
+#  Helgrind suppressions for Codexion
+# ----------------------------------------------------------------------------
+#  Known FALSE POSITIVE with glibc >= 2.34 condition variables.
+#
+#  glibc's pthread_cond_timedwait internally performs a futex/signal step
+#  ("__condvar_quiesce_and_switch_g1") while the waiter has atomically
+#  released its mutex. Helgrind intercepts that INTERNAL signal and reports:
+#      "pthread_cond_{signal,broadcast}: associated lock is not held by
+#       calling thread"
+#  even though our code calls pthread_cond_timedwait with the mutex held,
+#  exactly as required.
+#
+#  Evidence it is not our bug:
+#    - ThreadSanitizer reports 0 warnings on the same run.
+#    - Helgrind reports 0 errors at low thread counts.
+#    - The flagged signal frame is inside glibc (pthread_cond_wait.c),
+#      not at any of our pthread_cond_broadcast call sites.
+#
+#  Usage:
+#    valgrind --tool=helgrind --suppressions=helgrind.supp ./codexion ...
+# ============================================================================
+
+{
+   glibc-condvar-timedwait-internal-signal
+   Helgrind:Misc
+   fun:pthread_cond_signal_WRK
+   fun:__pthread_cond_wait_common
+   ...
+}

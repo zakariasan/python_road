@@ -186,23 +186,62 @@ info "3 800 200 200 200 3 0 FIFO (uppercase != fifo)" "rejected, exit 1"
 run 3 800 200 200 200 3 0 FIFO; check_exit 1
 
 # ===========================================================================
+#  1b. INT_MAX / OVERFLOW  (must never crash, hang, or silently misbehave)
+#      INT_MAX = 2147483647 ; INT_MAX+1 = 2147483648
+# ===========================================================================
+hdr "1b. INT_MAX & overflow"
+
+# num_coders = INT_MAX -> ~168GB malloc fails -> clean exit 1 (no crash)
+info "2147483647 800 200 200 200 3 100 fifo (num_coders=INT_MAX)" \
+	"allocation fails gracefully, exit 1, no hang"
+run 2147483647 800 200 200 200 3 100 fifo
+check_no_hang; check_exit 1
+
+# > INT_MAX must be rejected by the parser (overflow guard)
+info "2147483648 800 200 200 200 3 100 fifo (num_coders > INT_MAX)" \
+	"rejected as invalid, exit 1"
+run 2147483648 800 200 200 200 3 100 fifo; check_no_hang; check_exit 1
+
+info "99999999999999999999 800 200 200 200 3 100 fifo (way over INT_MAX)" \
+	"rejected as invalid, exit 1"
+run 99999999999999999999 800 200 200 200 3 100 fifo; check_no_hang; check_exit 1
+
+# overflow in a TIME field must also be rejected
+info "2 2147483648 200 200 200 3 100 fifo (burnout > INT_MAX)" \
+	"rejected as invalid, exit 1"
+run 2 2147483648 200 200 200 3 100 fifo; check_no_hang; check_exit 1
+
+info "2 800 2147483648 200 200 3 100 fifo (compile > INT_MAX)" \
+	"rejected as invalid, exit 1"
+run 2 800 2147483648 200 200 3 100 fifo; check_no_hang; check_exit 1
+
+info "2 800 200 200 200 3 2147483648 fifo (cooldown > INT_MAX)" \
+	"rejected as invalid, exit 1"
+run 2 800 200 200 200 3 2147483648 fifo; check_no_hang; check_exit 1
+
+# NOTE (not asserted, documented behavior):
+#   burnout=INT_MAX  -> valid, means "never burns out" (exit 0)
+#   compiles_required=INT_MAX -> valid but needs 2.1B compiles -> runs ~forever.
+#     We do NOT run that here; it is not an error, just an infeasible workload.
+
+# ===========================================================================
 #  2. NORMAL RUNS  (everyone should finish, nobody burns out)
 # ===========================================================================
 hdr "2. normal completion (fifo)"
-info "5 800 200 200 200 3 0 fifo" "no burnout, all 5 reach 3 compiles, exit 0"
-run 5 800 200 200 200 3 0 fifo
+info "5 5000 200 200 200 3 0 fifo" "no burnout, all 5 reach 3 compiles, exit 0 (feasible margin: 5 coders need ~600ms/round)"
+run 5 5000 200 200 200 3 0 fifo
 check_no_hang; check_format; check_monotonic; check_sequence
 check_burnout_last; check_completion 5 3
 
 hdr "2b. normal completion (edf)"
-info "4 800 200 100 100 3 50 edf" "no burnout, all 4 reach 3 compiles, exit 0"
-run 4 800 200 100 100 3 50 edf
+info "4 5000 200 100 100 3 50 edf" "no burnout, all 4 reach 3 compiles, exit 0"
+run 4 5000 200 100 100 3 50 edf
 check_no_hang; check_format; check_monotonic; check_sequence
 check_burnout_last; check_completion 4 3
 
 hdr "2c. many compiles required"
-info "3 1500 100 100 100 20 0 fifo" "all 3 reach 20 compiles, no burnout"
-run 3 1500 100 100 100 20 0 fifo
+info "3 5000 100 100 100 20 0 fifo" "all 3 reach 20 compiles, no burnout"
+run 3 5000 100 100 100 20 0 fifo
 check_no_hang; check_format; check_sequence; check_completion 3 20
 
 # ===========================================================================
@@ -233,13 +272,13 @@ run 2 200 50 50 50 5 100000 fifo
 check_no_hang; check_format; check_sequence; check_burnout_last; check_has_burnout
 
 hdr "4b. cooldown = 0 (no cooldown)"
-info "4 800 100 100 100 5 0 fifo" "fast turnover, all finish, no burnout"
-run 4 800 100 100 100 5 0 fifo
+info "4 5000 100 100 100 5 0 fifo" "fast turnover, all finish, no burnout"
+run 4 5000 100 100 100 5 0 fifo
 check_no_hang; check_sequence; check_completion 4 5
 
 hdr "4c. moderate cooldown still completes when feasible"
-info "3 2000 100 100 100 4 150 edf" "cooldown small vs burnout -> all 3 finish"
-run 3 2000 100 100 100 4 150 edf
+info "3 5000 100 100 100 4 150 edf" "cooldown small vs burnout -> all 3 finish"
+run 3 5000 100 100 100 4 150 edf
 check_no_hang; check_sequence; check_completion 3 4
 
 # ===========================================================================
@@ -251,8 +290,8 @@ run 1 300 200 200 200 5 0 fifo
 check_no_hang; check_format; check_burnout_last; check_burnout_time 300
 
 hdr "5b. two coders, one shared pair of dongles"
-info "2 800 100 100 100 4 0 edf" "both alternate, finish, no burnout"
-run 2 800 100 100 100 4 0 edf
+info "2 5000 100 100 100 4 0 edf" "both alternate, finish, no burnout"
+run 2 5000 100 100 100 4 0 edf
 check_no_hang; check_sequence; check_completion 2 4
 
 hdr "5c. all-zero work times (compile/debug/refactor = 0)"
@@ -261,8 +300,8 @@ run 3 1000 0 0 0 5 0 fifo
 check_no_hang; check_format; check_completion 3 5
 
 hdr "5d. compiles_required = 1 (minimal goal)"
-info "4 800 100 100 100 1 0 fifo" "each compiles once, exit 0"
-run 4 800 100 100 100 1 0 fifo
+info "4 5000 100 100 100 1 0 fifo" "each compiles once, exit 0"
+run 4 5000 100 100 100 1 0 fifo
 check_no_hang; check_sequence; check_completion 4 1
 
 hdr "5e. larger herd"

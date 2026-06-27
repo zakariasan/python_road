@@ -28,7 +28,7 @@ static void	compile_time(t_coder *c, t_hub *hub)
 	pthread_mutex_lock(&hub->over_mutex);
 	c->last_compile = get_time_ms();
 	c->deadline = c->last_compile + hub->time_to_burnout;
-	c->counter++;
+	pthread_cond_signal(&hub->over_cond);
 	pthread_mutex_unlock(&hub->over_mutex);
 }
 
@@ -38,6 +38,10 @@ static void	work_time(t_coder *c, t_hub *hub, t_dongle *first, t_dongle *second)
 	if (second)
 		loging(c, "has taken a dongle");
 	loging(c, "is compiling");
+	pthread_mutex_lock(&hub->over_mutex);
+	c->counter++;
+	pthread_cond_signal(&hub->over_cond);
+	pthread_mutex_unlock(&hub->over_mutex);
 	u_sleep(hub, hub->time_to_compile);
 	dongle_release(first, hub);
 	if (second)

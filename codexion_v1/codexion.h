@@ -106,7 +106,6 @@ int		ft_init_hub(t_hub *hub);
 int		ft_parser(int ac, char **av, t_hub *hub);
 
 int		ft_over(t_hub *hub);
-int		all_done(t_hub *hub);
 void	destroy_hub(t_hub *hub);
 
 void	dq_push(t_dongle *d, t_coder *c);

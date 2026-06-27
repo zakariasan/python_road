@@ -48,24 +48,3 @@ void	set_over(t_hub *hub)
 	pthread_cond_broadcast(&hub->over_cond);
 	pthread_mutex_unlock(&hub->over_mutex);
 }
-
-int	all_done(t_hub *hub)
-{
-	int	i;
-	int	done;
-
-	i = 0;
-	done = 1;
-	pthread_mutex_lock(&hub->over_mutex);
-	while (i < hub->num_coders)
-	{
-		if (hub->coders[i].counter < hub->compiles_required)
-		{
-			done = 0;
-			break ;
-		}
-		i++;
-	}
-	pthread_mutex_unlock(&hub->over_mutex);
-	return (done);
-}
